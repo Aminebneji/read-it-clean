@@ -1,10 +1,26 @@
-import { getAllRSSFeedsInOne } from "@/services/rss.service";
+import { fetchMergedRssFeeds } from "@/services/rss.service";
+import { logger } from "@/utils/logger.utils";
 
+// Job de mise à jour des articles depuis les flux RSS
 
-export async function updateArticlesJob() {
-    const articles = await getAllRSSFeedsInOne();
+export async function updateArticlesJob(): Promise<void> {
+    try {
+        logger.info('Starting article update job');
 
-    for (const article of articles) {
-        console.log(`[INFO] Article: ${article.title}`);
+        const rssArticles = await fetchMergedRssFeeds();
+
+        for (const article of rssArticles) {
+            logger.info(`Processing article: ${article.title}`, {
+                link: article.link,
+                pubDate: article.pubDate,
+            });
+
+            // TODO: Implémenter la logique de sauvegarde des articles
+        }
+
+        logger.success(`Article update job completed. Processed ${rssArticles.length} articles`);
+    } catch (error) {
+        logger.error('Article update job failed', error);
+        throw error;
     }
 }

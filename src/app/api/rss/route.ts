@@ -1,15 +1,14 @@
-import { NextResponse } from "next/server";
-import { getAllRSSFeedsInOne } from "@/services/rss.service";
+import { fetchMergedRssFeeds } from "@/services/rss.service";
+import { createSuccessResponse, handleApiError } from "@/utils/api.utils";
+
+//GET /api/rss
+//Récupère tous les flux RSS fusionnés et triés
 
 export async function GET() {
     try {
-        const data = await getAllRSSFeedsInOne();
-        return NextResponse.json({ success: true, data });
-    } catch (err) {
-        console.error(err);
-        return NextResponse.json(
-            { success: false, error: (err as Error).message },
-            { status: 500 }
-        );
+        const mergedRssFeeds = await fetchMergedRssFeeds();
+        return createSuccessResponse(mergedRssFeeds, mergedRssFeeds.length);
+    } catch (error) {
+        return handleApiError(error, 'GET /api/rss');
     }
 }

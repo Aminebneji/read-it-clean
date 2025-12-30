@@ -15,13 +15,14 @@ model Article {
   content   String
   description String?
   image     String?
-  version   version     @default(Classic)
+  version   version     @default(Blizzard)
   published Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 enum version {
+  Blizzard
   Classic
   Retail
 }
