@@ -1,7 +1,5 @@
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -9,16 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Article {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String
-  description String?
-  image     String?
-  version   version     @default(Blizzard)
-  published Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// ADMIN
+model Admin {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  password  String?
+  sessions  Session[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  adminId      String   @map("admin_id")
+  expires      DateTime
+  admin        Admin    @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 enum version {
@@ -27,5 +40,14 @@ enum version {
   Retail
 }
 
-
-
+model Article {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  description String?
+  image       String?
+  version     version  @default(Blizzard)
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

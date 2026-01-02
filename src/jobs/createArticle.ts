@@ -13,6 +13,7 @@ export async function updateArticlesJob(): Promise<void> {
             logger.info(`Processing article: ${article.title}`, {
                 link: article.link,
                 pubDate: article.pubDate,
+                image: article.image,
             });
 
             // TODO: Implémenter la logique de sauvegarde des articles
