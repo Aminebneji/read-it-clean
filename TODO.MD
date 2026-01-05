@@ -1,29 +1,21 @@
 TODO :
  Frontend 🎨
+ 
+créer les pages user ( réfléchir à la Home, aux filtres (searchbar??), aux catégories)
+Responsive design
 
- Pages de listing des articles R / C / BLIZZARD (scroll)
- Pages de listing des articles RETAIL (scroll)
- Pages de listing des articles CLASSIC (scroll)
- Navigation et filtres (Classic/Retail)
- Page de détail d'article
- Page de listing d'article(admin)
- Page de détail / edition / generation d'article (admin)
- Responsive design
-
- ( faut que j'aille faire un mockup )
+ ( faut que j'aille faire une maquette )
 
 
 Backend 🤖  
-auth admin
-Intégration API LLM (Claude ou autre)
- Pipeline de génération d'articles
- Enrichissement du contenu 
+gérer une traduction ? 
+pouvoir éditer dans le dashboard 
+mettre des sous dans Claude 
  Optimisation SEO ?
+
  
  Système de Pinning 📌
-
  Logique de priorisation
- Critères de mise en avant ( probablement la date de publication )
  Durée de vie des pins
  Interface de gestion manuelle des pins ( type articles importants)
 

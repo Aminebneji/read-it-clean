@@ -1,12 +1,10 @@
+// services/claude.service.ts
 import Anthropic from "@anthropic-ai/sdk";
-import { ClaudeGenerationInput, ClaudeGenerationOutput } from "@/types/claude.types";
 import { CLAUDE_CONFIG } from "@/config/app.config";
 import { logger } from "@/utils/logger.utils";
 import { AppError } from "@/utils/error.utils";
 import { ERROR_MESSAGES } from "@/config/constants";
-
-
-//Initialise le client Anthropic avec validation
+import { getArticleById, updateArticleWithGeneratedText } from "./article.service";
 
 function getAnthropicClient(): Anthropic {
     if (!CLAUDE_CONFIG.apiKey || CLAUDE_CONFIG.apiKey.trim() === '') {
@@ -21,29 +19,32 @@ function getAnthropicClient(): Anthropic {
     });
 }
 
-// Construction du prompt pour Claude
-
-function buildPrompt(input: ClaudeGenerationInput, context: string): string {
+function buildPrompt(title: string, description: string, link: string, context: string): string {
     return `${context}
-
-Lien de l'article: ${input.link}
-Description: ${input.description}
-
-Génère un texte basé sur ces informations.`;
+Titre de l'article: ${title}
+Lien de l'article: ${link}
+Description: ${description}`;
 }
 
-
-//Génère du texte à partir d'un lien et d'une description en utilisant l'API Claude
-
-export async function generateTextWithClaude(
-    input: ClaudeGenerationInput,
+// Génère du texte pour un article stocké en DB
+export async function generateTextForArticle(
+    articleId: string,
     customContext?: string
-): Promise<ClaudeGenerationOutput> {
-    const context = customContext || CLAUDE_CONFIG.context;
-    const prompt = buildPrompt(input, context);
-
+): Promise<string> {
     try {
-        logger.debug(`Generating text for: ${input.link}`);
+        // Récupérer l'article depuis la DB
+        const article = await getArticleById(articleId);
+
+        // Vérifier si le texte n'a pas déjà été généré
+        if (article.isGenerated && article.generatedText) {
+            logger.info(`Article already has generated text: ${article.title}`);
+            return article.generatedText;
+        }
+
+        logger.info(`Generating text for article: ${article.title}`);
+
+        const context = customContext || CLAUDE_CONFIG.context;
+        const prompt = buildPrompt(article.title, article.description || '', article.link, context);
 
         const anthropic = getAnthropicClient();
         const message = await anthropic.messages.create({
@@ -62,15 +63,14 @@ export async function generateTextWithClaude(
                 ? message.content[0].text
                 : "";
 
-        logger.success(`Generated text for: ${input.link}`);
+        // Sauvegarder le texte généré en DB
+        await updateArticleWithGeneratedText(articleId, generatedText);
 
-        return {
-            generatedText,
-            originalLink: input.link,
-            originalDescription: input.description,
-        };
+        logger.success(`Generated and saved text for article: ${article.title}`);
+
+        return generatedText;
     } catch (error) {
-        logger.error(`Claude API error for ${input.link}:`, error);
+        logger.error(`Claude API error for article ${articleId}:`, error);
         throw new AppError(
             `${ERROR_MESSAGES.CLAUDE_API_FAILED}: ${(error as Error).message}`,
             'CLAUDE_API_ERROR'

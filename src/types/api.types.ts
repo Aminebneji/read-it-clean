@@ -1,5 +1,4 @@
 //  Structure de réponse API réussie
-
 export interface ApiSuccessResponse<T> {
     success: true;
     data: T;
@@ -8,7 +7,6 @@ export interface ApiSuccessResponse<T> {
 
 
 //  Structure de réponse API en erreur
-
 export interface ApiErrorResponse {
     success: false;
     error: string;

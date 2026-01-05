@@ -5,6 +5,7 @@ export interface RSSItem {
     pubDate: string;
     description: string;
     image?: string;
+    category?: string;
 }
 
 // Collection de flux RSS organisés par catégorie
