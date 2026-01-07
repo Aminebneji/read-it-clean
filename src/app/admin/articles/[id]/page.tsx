@@ -9,6 +9,13 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
     const [article, setArticle] = useState<article | null>(null);
     const [loading, setLoading] = useState(true);
     const [generating, setGenerating] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editData, setEditData] = useState({
+        title: "",
+        description: "",
+        generatedText: ""
+    });
+    const [saving, setSaving] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -18,6 +25,11 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                 const data = await res.json();
                 if (data.success) {
                     setArticle(data.data);
+                    setEditData({
+                        title: data.data.title,
+                        description: data.data.description || "",
+                        generatedText: data.data.generatedText || ""
+                    });
                 } else {
                     alert("Erreur: " + data.error);
                 }
@@ -38,7 +50,13 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
             });
             const data = await res.json();
             if (data.success) {
-                setArticle(prev => prev ? { ...prev, isGenerated: true, generatedText: data.data.generatedText } : null);
+                const updatedArticle = data.data;
+                setArticle(updatedArticle);
+                setEditData({
+                    title: updatedArticle.title,
+                    description: updatedArticle.description || "",
+                    generatedText: updatedArticle.generatedText || ""
+                });
             } else {
                 alert("Erreur génération: " + data.error);
             }
@@ -46,6 +64,29 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
             alert("Erreur réseau");
         } finally {
             setGenerating(false);
+        }
+    };
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const res = await fetch(`/api/articles/${params.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(editData)
+            });
+            const data = await res.json();
+            if (data.success) {
+                setArticle(data.data);
+                setIsEditing(false);
+                alert("Article mis à jour");
+            } else {
+                alert("Erreur lors de la sauvegarde: " + data.error);
+            }
+        } catch (error) {
+            alert("Erreur réseau");
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -82,9 +123,20 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
 
             <div className="bg-white shadow rounded-lg p-6">
                 <div className="flex justify-between items-start mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">{article.title}</h1>
+                    <div className="flex-1 mr-4">
+                        {isEditing ? (
+                            <input
+                                type="text"
+                                value={editData.title}
+                                onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                                className="w-full text-2xl font-bold text-black border rounded px-2 py-1 outline-blue-500"
+                            />
+                        ) : (
+                            <h1 className="text-2xl font-bold text-black">{article.title}</h1>
+                        )}
+                    </div>
                     <div className="flex space-x-2">
-                        <span className={`px-3 py-1 rounded-full text-sm font-semibold ${article.category?.toLowerCase() === 'retail' ? 'bg-blue-100 text-blue-800' :
+                        <span className={`px-3 py-1 rounded-full text-sm font-semibold h-fit ${article.category?.toLowerCase() === 'retail' ? 'bg-blue-100 text-blue-800' :
                             article.category?.toLowerCase() === 'classic' ? 'bg-yellow-100 text-yellow-800' :
                                 'bg-gray-100 text-gray-800'
                             }`}>
@@ -119,15 +171,24 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                     </div>
                     <div>
                         <h3 className="font-semibold text-black mb-2">Description Originale</h3>
-                        <div className="bg-gray-50 p-4 rounded text-sm text-gray-700">
-                            {article.description || "Aucune description"}
-                        </div>
+                        {isEditing ? (
+                            <textarea
+                                value={editData.description}
+                                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                                className="w-full h-32 text-sm text-black border rounded p-2 outline-blue-500"
+                            />
+                        ) : (
+                            <div className="bg-gray-50 p-4 rounded text-sm text-black">
+                                {article.description || "Aucune description"}
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 <div className="border-t pt-6">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-xl font-semibold text-black">Contenu</h2>
+                        {/* generation */}
                         {!article.isGenerated && (
                             <button
                                 onClick={handleGenerate}
@@ -146,20 +207,60 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                 Régénérer
                             </button>
                         )}
+                        {/* edition */}
+                        <button
+                            onClick={() => {
+                                if (isEditing) handleSave();
+                                else setIsEditing(true);
+                            }}
+                            disabled={saving}
+                            className={`px-4 py-2 rounded text-white ${isEditing ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-800 hover:bg-black'}`}
+                        >
+                            {saving ? "Sauvegarde..." : isEditing ? "Enregistrer" : "Modifier"}
+                        </button>
+
+                        {isEditing && (
+
+                            <button
+                                onClick={() => {
+                                    setIsEditing(false);
+                                    setEditData({
+                                        title: article.title,
+                                        description: article.description || "",
+                                        generatedText: article.generatedText || ""
+                                    });
+                                }}
+                                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-black"
+                            >
+                                Annuler
+                            </button>
+
+                        )}
+
                     </div>
 
-                    {article.generatedText ? (
-                        <div className="prose max-w-none bg-gray-50 p-6 rounded-lg whitespace-pre-wrap">
-                            {article.generatedText}
-                        </div>
+                    {isEditing ? (
+                        <textarea
+                            value={editData.generatedText}
+                            onChange={(e) => setEditData({ ...editData, generatedText: e.target.value })}
+                            className="w-full h-96 text-black border rounded p-6 outline-blue-500 whitespace-pre-wrap"
+                            placeholder="Le contenu n'a pas encore été généré..."
+                        />
                     ) : (
-                        <div className="text-center py-12 bg-gray-50 rounded-lg text-gray-500 italic">
-                            Le contenu n'a pas encore été généré.
-                        </div>
+                        article.generatedText ? (
+                            <div className="prose max-w-none text-black p-6 rounded-lg whitespace-pre-wrap">
+                                {article.generatedText}
+                            </div>
+                        ) : (
+                            <div className="text-center py-12 text-black rounded-lg italic">
+                                Le contenu n'a pas encore été généré.
+                            </div>
+                        )
                     )}
+
                 </div>
 
-                <div className="border-t mt-8 pt-6 flex justify-end">
+                <div className="border-t mt-8 pt-6 flex justify-end gap-2">
                     <button
                         onClick={handleDelete}
                         className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded transition-colors"

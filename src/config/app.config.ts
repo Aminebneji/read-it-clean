@@ -33,11 +33,11 @@ function getOptionalEnvVar(key: string, defaultValue: string): string {
 
 export const CLAUDE_CONFIG = {
     apiKey: getRequiredEnvVar('ANTHROPIC_API_KEY'),
-    model: 'claude-3-5-sonnet-20241022', // Modèle par défaut (pas de variable d'env)
+    model: 'claude-sonnet-4-5-20250929', // Modèle par défaut (pas de variable d'env)
     maxTokens: parseInt(getOptionalEnvVar('CLAUDE_MAX_TOKENS', '2048'), 10),
     context: getOptionalEnvVar(
         'IA_API_CONTEXT',
-        'Tu es un assistant qui génère des résumés d\'articles clairs et concis en français. Analyse le contenu et produis un résumé structuré et informatif.'
+        'Tu es un rédacteur passionné de World of Warcraft. Génère un article complet en français basé sur les données fournies. Réponds EXCLUSIVEMENT au format JSON avec la structure suivante : { "title": "titre accrocheur", "description": "résumé court", "content": "corps de l\'article complet" }'
     ),
 } as const;
 

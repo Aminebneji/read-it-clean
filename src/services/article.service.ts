@@ -73,7 +73,7 @@ export async function saveArticlesBatch(rssItems: RSSItem[]): Promise<{
     };
 }
 
-// Récupère tous les articles (avec pagination optionnelle)
+// Récupère tous les articles (pagination)
 export async function getArticles(options?: {
     skip?: number;
     take?: number;
@@ -102,7 +102,7 @@ export async function getArticles(options?: {
     return { articles, total };
 }
 
-// Récupère un article par ID
+// Récupère un article par son ID
 export async function getArticleById(id: string) {
     const article = await prisma.article.findUnique({
         where: { id: parseInt(id) },
@@ -120,25 +120,33 @@ export async function updateArticleWithGeneratedText(
     id: string,
     generatedText: string
 ) {
+    return updateArticle(id, {
+        generatedText,
+        isGenerated: true,
+        generatedAt: new Date(),
+    });
+}
+
+// Met à jour un article avec des inputs
+export async function updateArticle(
+    id: string,
+    data: Prisma.ArticleUpdateInput
+) {
     try {
         const article = await prisma.article.update({
             where: { id: parseInt(id) },
-            data: {
-                generatedText,
-                isGenerated: true,
-                generatedAt: new Date(),
-            },
+            data,
         });
 
-        logger.success(`Article text updated: ${article.title}`);
+        logger.success(`Article updated: ${article.title}`);
         return article;
     } catch (error) {
-        logger.error(`Failed to update article text: ${id}`, error);
+        logger.error(`Failed to update article: ${id}`, error);
         throw error;
     }
 }
 
-// Récupère les statistiques des articles
+// Récupère les statistiques des articles ( trop fun)
 export async function getArticleStats() {
     const [total, generated, notGenerated] = await Promise.all([
         prisma.article.count(),

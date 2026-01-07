@@ -20,10 +20,10 @@ export async function POST(
             );
         }
 
-        const generatedText = await generateTextForArticle(params.id);
+        const updatedArticle = await generateTextForArticle(params.id, { force: true });
 
         return createSuccessResponse(
-            { generatedText },
+            updatedArticle,
             HTTP_STATUS.OK
         );
     } catch (error) {

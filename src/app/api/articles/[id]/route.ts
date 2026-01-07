@@ -1,6 +1,6 @@
 import { createErrorResponse, createSuccessResponse } from "@/utils/api.utils";
 import { HTTP_STATUS } from "@/config/constants";
-import { getArticleById, deleteArticle } from "@/services/article.service";
+import { getArticleById, deleteArticle, updateArticle } from "@/services/article.service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/config/auth.config";
 import { NextRequest } from "next/server";
@@ -20,6 +20,32 @@ export async function GET(
         return createSuccessResponse(article, HTTP_STATUS.OK);
     } catch (error) {
         return createErrorResponse(error, HTTP_STATUS.INTERNAL_SERVER_ERROR, `GET /api/articles/${params.id}`);
+    }
+}
+
+export async function PATCH(
+    request: NextRequest,
+    props: { params: Promise<{ id: string }> }
+) {
+    const params = await props.params;
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session || session.user.role !== 'ADMIN') {
+            return createErrorResponse(new Error("Unauthorized"), HTTP_STATUS.UNAUTHORIZED);
+        }
+
+        const body = await request.json();
+        const { title, description, generatedText } = body;
+
+        const updatedArticle = await updateArticle(params.id, {
+            title,
+            description,
+            generatedText,
+        });
+
+        return createSuccessResponse(updatedArticle, HTTP_STATUS.OK);
+    } catch (error) {
+        return createErrorResponse(error, HTTP_STATUS.INTERNAL_SERVER_ERROR, `PATCH /api/articles/${params.id}`);
     }
 }
 

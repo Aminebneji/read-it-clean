@@ -4,7 +4,9 @@ import { CLAUDE_CONFIG } from "@/config/app.config";
 import { logger } from "@/utils/logger.utils";
 import { AppError } from "@/utils/error.utils";
 import { ERROR_MESSAGES } from "@/config/constants";
-import { getArticleById, updateArticleWithGeneratedText } from "./article.service";
+import { getArticleById, updateArticle } from "./article.service";
+
+import { article } from "@/types/article.types";
 
 function getAnthropicClient(): Anthropic {
     if (!CLAUDE_CONFIG.apiKey || CLAUDE_CONFIG.apiKey.trim() === '') {
@@ -21,29 +23,36 @@ function getAnthropicClient(): Anthropic {
 
 function buildPrompt(title: string, description: string, link: string, context: string): string {
     return `${context}
-Titre de l'article: ${title}
-Lien de l'article: ${link}
-Description: ${description}`;
+
+IMPORTANT: Ta réponse doit être un objet JSON valide uniquement.
+
+Données de l'article source:
+Titre: ${title}
+Description: ${description}
+Lien: ${link}`;
 }
 
 // Génère du texte pour un article stocké en DB
 export async function generateTextForArticle(
     articleId: string,
-    customContext?: string
-): Promise<string> {
+    options?: {
+        customContext?: string;
+        force?: boolean;
+    }
+): Promise<article> {
     try {
         // Récupérer l'article depuis la DB
         const article = await getArticleById(articleId);
 
-        // Vérifier si le texte n'a pas déjà été généré
-        if (article.isGenerated && article.generatedText) {
+        // Vérifier si le texte n'a pas déjà été généré (sauf si force est vrai)
+        if (!options?.force && article.isGenerated && article.generatedText) {
             logger.info(`Article already has generated text: ${article.title}`);
-            return article.generatedText;
+            return article as unknown as article;
         }
 
-        logger.info(`Generating text for article: ${article.title}`);
+        logger.info(`${options?.force ? 'Re-generating' : 'Generating'} text for article: ${article.title}`);
 
-        const context = customContext || CLAUDE_CONFIG.context;
+        const context = options?.customContext || CLAUDE_CONFIG.context;
         const prompt = buildPrompt(article.title, article.description || '', article.link, context);
 
         const anthropic = getAnthropicClient();
@@ -58,17 +67,40 @@ export async function generateTextForArticle(
             ],
         });
 
-        const generatedText =
+        const rawContent =
             message.content[0].type === "text"
                 ? message.content[0].text
                 : "";
 
-        // Sauvegarder le texte généré en DB
-        await updateArticleWithGeneratedText(articleId, generatedText);
+        // parser le JSON
+        let generatedData;
+        try {
+            // Nettoyage au cas où Claude ajouterait du texte autour (markdown etc)
+            const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+            const jsonString = jsonMatch ? jsonMatch[0] : rawContent;
+            generatedData = JSON.parse(jsonString);
+        } catch (_) {
+            logger.error("Failed to parse Claude JSON response", rawContent);
+            // Fallback si le format JSON n'est pas respecté
+            generatedData = {
+                title: article.title,
+                description: article.description,
+                content: rawContent
+            };
+        }
 
-        logger.success(`Generated and saved text for article: ${article.title}`);
+        // Sauvegarder les données générées en DB
+        const updatedArticle = await updateArticle(articleId, {
+            title: generatedData.title || article.title,
+            description: generatedData.description || article.description,
+            generatedText: generatedData.content || rawContent,
+            isGenerated: true,
+            generatedAt: new Date(),
+        });
 
-        return generatedText;
+        logger.success(`Generated and saved all fields for article: ${updatedArticle.title}`);
+
+        return updatedArticle as unknown as article;
     } catch (error) {
         logger.error(`Claude API error for article ${articleId}:`, error);
         throw new AppError(
