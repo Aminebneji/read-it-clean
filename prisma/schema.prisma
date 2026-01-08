@@ -55,8 +55,11 @@ model Article {
   generatedText String?  @db.Text
   isGenerated   Boolean  @default(false)
   generatedAt   DateTime?
+  pinned        Boolean  @default(false)
     
   @@index([link])
   @@index([isGenerated])
   @@index([pubDate])
+  @@index([published])
+  @@index([pinned])
 }

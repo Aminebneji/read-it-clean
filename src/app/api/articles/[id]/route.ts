@@ -4,6 +4,7 @@ import { getArticleById, deleteArticle, updateArticle } from "@/services/article
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/config/auth.config";
 import { NextRequest } from "next/server";
+import { sanitizeHtml } from "@/utils/security.utils";
 
 export async function GET(
     request: NextRequest,
@@ -38,9 +39,9 @@ export async function PATCH(
         const { title, description, generatedText } = body;
 
         const updatedArticle = await updateArticle(params.id, {
-            title,
-            description,
-            generatedText,
+            title: title ? sanitizeHtml(title) : undefined,
+            description: description ? sanitizeHtml(description) : undefined,
+            generatedText: generatedText ? sanitizeHtml(generatedText) : undefined,
         });
 
         return createSuccessResponse(updatedArticle, HTTP_STATUS.OK);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { article } from "@/types/article.types";
 
 interface ArticlePagination {
@@ -17,20 +17,25 @@ export default function ArticleManager() {
     const [pagination, setPagination] = useState<ArticlePagination | null>(null);
     const [page, setPage] = useState(1);
 
-    const fetchArticles = async () => {
+    const fetchArticles = useCallback(async () => {
         setLoading(true);
         try {
             const queryParams = new URLSearchParams({
                 page: page.toString(),
                 limit: "20",
-                ...(onlyPending && { onlyWithoutText: "true" })
+                publishedOnly: "false", // Admin voit tous les articles
             });
 
             const res = await fetch(`/api/articles?${queryParams}`);
             const data = await res.json();
 
             if (data.success) {
-                setArticles(data.data.articles);
+                let filteredArticles = data.data.articles;
+                // Filtrer côté client pour "non générés"
+                if (onlyPending) {
+                    filteredArticles = filteredArticles.filter((a: article) => !a.isGenerated);
+                }
+                setArticles(filteredArticles);
                 setPagination(data.data.pagination);
             }
         } catch (error) {
@@ -38,11 +43,11 @@ export default function ArticleManager() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, onlyPending]);
 
     useEffect(() => {
         fetchArticles();
-    }, [page, onlyPending]);
+    }, [fetchArticles]);
 
     const handleSync = async () => {
         setLoading(true);
@@ -60,6 +65,25 @@ export default function ArticleManager() {
             alert("Erreur réseau lors de la synchro");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleTogglePublish = async (articleId: string, currentStatus: boolean) => {
+        try {
+            const res = await fetch(`/api/articles/${articleId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ published: !currentStatus })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setArticles(prev => prev.map(a => a.id === articleId ? { ...a, published: !currentStatus } : a));
+            } else {
+                alert("Erreur: " + data.error);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erreur réseau");
         }
     };
 
@@ -103,6 +127,7 @@ export default function ArticleManager() {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Publication</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
                             </tr>
                         </thead>
@@ -137,6 +162,18 @@ export default function ArticleManager() {
                                                 En attente
                                             </span>
                                         )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <button
+                                            onClick={() => handleTogglePublish(article.id, article.published)}
+                                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full transition-colors cursor-pointer ${article.published
+                                                ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                                }`}
+                                            title={article.published ? "Dépublier" : "Publier"}
+                                        >
+                                            {article.published ? '✓ Publié' : '○ Non publié'}
+                                        </button>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                         <a

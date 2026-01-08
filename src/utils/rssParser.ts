@@ -22,7 +22,7 @@ export function parseRssFeedXml(xmlContent: string): RSSItem[] {
             return [mapRssItem(rssItems)];
         }
 
-        return rssItems.map((item: RSSItem) => mapRssItem(item));
+        return rssItems.map((item: Record<string, unknown>) => mapRssItem(item));
     } catch (error) {
         throw new AppError(
             `${ERROR_MESSAGES.RSS_PARSE_FAILED}: ${(error as Error).message}`,
@@ -33,19 +33,20 @@ export function parseRssFeedXml(xmlContent: string): RSSItem[] {
 }
 
 
+
 // Mappe un item RSS brut vers la structure RSSItem
-function mapRssItem(item: any): RSSItem {
+function mapRssItem(item: Record<string, unknown>): RSSItem {
     return {
-        title: item.title || '',
-        link: item.link || '',
-        pubDate: item.pubDate || new Date().toISOString(),
-        description: item.description || '',
+        title: (item.title as string) || '',
+        link: (item.link as string) || '',
+        pubDate: (item.pubDate as string) || new Date().toISOString(),
+        description: (item.description as string) || '',
         image: extractImageUrl(item),
     };
 }
 
 // Extrait l'URL de l'image d'un item RSS
-function extractImageUrl(item: any): string | undefined {
+function extractImageUrl(item: Record<string, unknown>): string | undefined {
     const extractors = [
         // media:content (format Media RSS)
         () => {
@@ -66,7 +67,7 @@ function extractImageUrl(item: any): string | undefined {
         // champ image direct
         () => {
             if (typeof item.image === 'string') return item.image;
-            return item.image?.url;
+            return (item.image as { url?: string })?.url;
         },
 
         // media:thumbnail

@@ -5,7 +5,7 @@ import { logger } from "@/utils/logger.utils";
 import { AppError } from "@/utils/error.utils";
 import { ERROR_MESSAGES } from "@/config/constants";
 import { getArticleById, updateArticle } from "./article.service";
-
+import { tracker } from "@/utils/security.utils";
 import { article } from "@/types/article.types";
 
 function getAnthropicClient(): Anthropic {
@@ -32,6 +32,27 @@ Description: ${description}
 Lien: ${link}`;
 }
 
+//Vérifie si la génération doit être ignorée ou non
+function shouldSkipGeneration(article: { isGenerated: boolean; generatedText: string | null }, force?: boolean): boolean {
+    return !force && article.isGenerated && !!article.generatedText;
+}
+
+//Parse la réponse JSON de Claude avec fallback
+function parseClaudeResponse(rawContent: string, article: { title: string; description: string | null }) {
+    try {
+        const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+        const jsonString = jsonMatch ? jsonMatch[0] : rawContent;
+        return JSON.parse(jsonString);
+    } catch {
+        logger.error("Failed to parse Claude JSON response", rawContent);
+        return {
+            title: article.title,
+            description: article.description,
+            content: rawContent
+        };
+    }
+}
+
 // Génère du texte pour un article stocké en DB
 export async function generateTextForArticle(
     articleId: string,
@@ -41,11 +62,11 @@ export async function generateTextForArticle(
     }
 ): Promise<article> {
     try {
-        // Récupérer l'article depuis la DB
+
         const article = await getArticleById(articleId);
 
-        // Vérifier si le texte n'a pas déjà été généré (sauf si force est vrai)
-        if (!options?.force && article.isGenerated && article.generatedText) {
+
+        if (shouldSkipGeneration(article, options?.force)) {
             logger.info(`Article already has generated text: ${article.title}`);
             return article as unknown as article;
         }
@@ -54,6 +75,14 @@ export async function generateTextForArticle(
 
         const context = options?.customContext || CLAUDE_CONFIG.context;
         const prompt = buildPrompt(article.title, article.description || '', article.link, context);
+
+        // Check token usage limit before call
+        if (!tracker.canUse()) {
+            throw new AppError(
+                "Claude API daily limit reached. Please try again tomorrow.",
+                "USAGE_LIMIT_REACHED"
+            );
+        }
 
         const anthropic = getAnthropicClient();
         const message = await anthropic.messages.create({
@@ -67,27 +96,18 @@ export async function generateTextForArticle(
             ],
         });
 
+        // Record usage
+        if (message.usage) {
+            tracker.recordUsage(message.usage.input_tokens + message.usage.output_tokens);
+        }
+
         const rawContent =
             message.content[0].type === "text"
                 ? message.content[0].text
                 : "";
 
-        // parser le JSON
-        let generatedData;
-        try {
-            // Nettoyage au cas où Claude ajouterait du texte autour (markdown etc)
-            const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-            const jsonString = jsonMatch ? jsonMatch[0] : rawContent;
-            generatedData = JSON.parse(jsonString);
-        } catch (_) {
-            logger.error("Failed to parse Claude JSON response", rawContent);
-            // Fallback si le format JSON n'est pas respecté
-            generatedData = {
-                title: article.title,
-                description: article.description,
-                content: rawContent
-            };
-        }
+        // Parser le JSON
+        const generatedData = parseClaudeResponse(rawContent, article);
 
         // Sauvegarder les données générées en DB
         const updatedArticle = await updateArticle(articleId, {

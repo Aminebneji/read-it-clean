@@ -39,6 +39,7 @@ export const CLAUDE_CONFIG = {
         'IA_API_CONTEXT',
         'Tu es un rédacteur passionné de World of Warcraft. Génère un article complet en français basé sur les données fournies. Réponds EXCLUSIVEMENT au format JSON avec la structure suivante : { "title": "titre accrocheur", "description": "résumé court", "content": "corps de l\'article complet" }'
     ),
+    dailyTokenLimit: parseInt(getOptionalEnvVar('CLAUDE_DAILY_TOKEN_LIMIT', '100000'), 10),
 } as const;
 
 

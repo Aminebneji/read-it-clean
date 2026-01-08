@@ -73,28 +73,41 @@ export async function saveArticlesBatch(rssItems: RSSItem[]): Promise<{
     };
 }
 
+// Clause WHERE pour la recherche d'articles
+function buildArticleWhereClause(options?: {
+    category?: string;
+    search?: string;
+    publishedOnly?: boolean;
+}): Prisma.ArticleWhereInput {
+    return {
+        ...(options?.category && { category: mapCategory(options.category) }),
+        ...(options?.search && {
+            OR: [
+                { title: { contains: options.search, mode: 'insensitive' } },
+                { description: { contains: options.search, mode: 'insensitive' } },
+            ]
+        }),
+        ...(options?.publishedOnly !== false && { published: true }),
+    };
+}
+
 // Récupère tous les articles (pagination)
 export async function getArticles(options?: {
     skip?: number;
     take?: number;
-    onlyWithoutText?: boolean;
     category?: string;
+    search?: string;
+    sort?: 'asc' | 'desc';
+    publishedOnly?: boolean;
 }) {
-    const where: Prisma.ArticleWhereInput = {};
-
-    if (options?.onlyWithoutText) {
-        where.isGenerated = false;
-    }
-
-    if (options?.category) {
-        where.category = mapCategory(options.category);
-    }
+    const where = buildArticleWhereClause(options);
+    const orderBy = options?.sort === 'asc' ? { pubDate: 'asc' as const } : { pubDate: 'desc' as const };
 
     const articles = await prisma.article.findMany({
         where,
         skip: options?.skip,
         take: options?.take,
-        orderBy: { pubDate: 'desc' },
+        orderBy,
     });
 
     const total = await prisma.article.count({ where });
@@ -116,10 +129,7 @@ export async function getArticleById(id: string) {
 }
 
 // Met à jour le texte généré pour un article
-export async function updateArticleWithGeneratedText(
-    id: string,
-    generatedText: string
-) {
+export async function updateArticleWithGeneratedText(id: string, generatedText: string) {
     return updateArticle(id, {
         generatedText,
         isGenerated: true,
@@ -128,10 +138,7 @@ export async function updateArticleWithGeneratedText(
 }
 
 // Met à jour un article avec des inputs
-export async function updateArticle(
-    id: string,
-    data: Prisma.ArticleUpdateInput
-) {
+export async function updateArticle(id: string, data: Prisma.ArticleUpdateInput) {
     try {
         const article = await prisma.article.update({
             where: { id: parseInt(id) },
@@ -144,22 +151,6 @@ export async function updateArticle(
         logger.error(`Failed to update article: ${id}`, error);
         throw error;
     }
-}
-
-// Récupère les statistiques des articles ( trop fun)
-export async function getArticleStats() {
-    const [total, generated, notGenerated] = await Promise.all([
-        prisma.article.count(),
-        prisma.article.count({ where: { isGenerated: true } }),
-        prisma.article.count({ where: { isGenerated: false } }),
-    ]);
-
-    return {
-        total,
-        generated,
-        notGenerated,
-        percentageGenerated: total > 0 ? Math.round((generated / total) * 100) : 0,
-    };
 }
 
 // Supprime un article

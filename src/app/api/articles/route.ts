@@ -9,16 +9,20 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const page = parseInt(searchParams.get('page') || '1');
         const limit = parseInt(searchParams.get('limit') || '20');
-        const onlyWithoutText = searchParams.get('onlyWithoutText') === 'true';
         const category = searchParams.get('category') || undefined;
+        const search = searchParams.get('search') || undefined;
+        const sort = searchParams.get('sort') || 'desc';
+        const publishedOnly = searchParams.get('publishedOnly') !== 'false'; // default true pour le public
 
         const skip = (page - 1) * limit;
 
         const { articles, total } = await getArticles({
             skip,
             take: limit,
-            onlyWithoutText,
             category,
+            search,
+            sort: sort as 'asc' | 'desc',
+            publishedOnly,
         });
 
         return createSuccessResponse(

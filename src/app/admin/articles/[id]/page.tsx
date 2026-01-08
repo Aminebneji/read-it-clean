@@ -61,6 +61,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                 alert("Erreur génération: " + data.error);
             }
         } catch (error) {
+            console.error(error);
             alert("Erreur réseau");
         } finally {
             setGenerating(false);
@@ -84,9 +85,32 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                 alert("Erreur lors de la sauvegarde: " + data.error);
             }
         } catch (error) {
+            console.error(error);
             alert("Erreur réseau");
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleTogglePublish = async () => {
+        if (!article) return;
+
+        try {
+            const res = await fetch(`/api/articles/${params.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ published: !article.published })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setArticle(data.data);
+                alert(article.published ? "Article dépublié" : "Article publié");
+            } else {
+                alert("Erreur: " + data.error);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erreur réseau");
         }
     };
 
@@ -105,6 +129,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                 alert("Erreur suppression: " + data.error);
             }
         } catch (error) {
+            console.error(error);
             alert("Erreur réseau");
         }
     };
@@ -135,7 +160,17 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                             <h1 className="text-2xl font-bold text-black">{article.title}</h1>
                         )}
                     </div>
-                    <div className="flex space-x-2">
+                    <div className="flex items-center space-x-2">
+                        <button
+                            onClick={handleTogglePublish}
+                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${article.published
+                                ? 'bg-green-100 text-green-800 hover:bg-green-200 border border-green-300'
+                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200 border border-gray-300'
+                                }`}
+                        >
+                            {article.published ? '✓ Publié' : '○ Non publié'}
+                        </button>
+
                         <span className={`px-3 py-1 rounded-full text-sm font-semibold h-fit ${article.category?.toLowerCase() === 'retail' ? 'bg-blue-100 text-blue-800' :
                             article.category?.toLowerCase() === 'classic' ? 'bg-yellow-100 text-yellow-800' :
                                 'bg-gray-100 text-gray-800'
@@ -253,7 +288,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                             </div>
                         ) : (
                             <div className="text-center py-12 text-black rounded-lg italic">
-                                Le contenu n'a pas encore été généré.
+                                Le contenu n&apos;a pas encore été généré.
                             </div>
                         )
                     )}
@@ -265,7 +300,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                         onClick={handleDelete}
                         className="bg-red-50 hover:bg-red-100 text-red-600 px-4 py-2 rounded transition-colors"
                     >
-                        Supprimer l'article
+                        Supprimer l&apos;article
                     </button>
                 </div>
             </div>
