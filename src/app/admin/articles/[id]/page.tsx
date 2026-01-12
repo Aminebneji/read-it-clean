@@ -104,7 +104,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
             const data = await res.json();
             if (data.success) {
                 setArticle(data.data);
-                alert(article.published ? "Article dépublié" : "Article publié");
+                alert(data.data.published ? "Article publié avec succès" : "Article dépublié");
             } else {
                 alert("Erreur: " + data.error);
             }
@@ -153,7 +153,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                             <input
                                 type="text"
                                 value={editData.title}
-                                onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+                                onChange={(event) => setEditData({ ...editData, title: event.target.value })}
                                 className="w-full text-2xl font-bold text-black border rounded px-2 py-1 outline-blue-500"
                             />
                         ) : (
@@ -163,12 +163,13 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                     <div className="flex items-center space-x-2">
                         <button
                             onClick={handleTogglePublish}
-                            className={`px-4 py-2 rounded-lg font-medium text-sm transition-all ${article.published
-                                ? 'bg-green-100 text-green-800 hover:bg-green-200 border border-green-300'
-                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200 border border-gray-300'
+                            className={
+                                `px-4 py-2 rounded-lg font-bold text-sm transition-all shadow-sm ${article.published
+                                    ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                    : 'bg-green-600 text-white hover:bg-green-700'
                                 }`}
                         >
-                            {article.published ? '✓ Publié' : '○ Non publié'}
+                            {article.published ? 'Dépublier' : 'Publier'}
                         </button>
 
                         <span className={`px-3 py-1 rounded-full text-sm font-semibold h-fit ${article.category?.toLowerCase() === 'retail' ? 'bg-blue-100 text-blue-800' :
@@ -188,7 +189,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                             src={article.image}
                             alt={article.title}
                             className="w-full h-64 object-cover rounded-lg shadow-sm"
-                            onError={(e) => (e.currentTarget.style.display = 'none')}
+                            onError={(event) => (event.currentTarget.style.display = 'none')}
                         />
                     </div>
                 )}
@@ -209,7 +210,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                         {isEditing ? (
                             <textarea
                                 value={editData.description}
-                                onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                                onChange={(event) => setEditData({ ...editData, description: event.target.value })}
                                 className="w-full h-32 text-sm text-black border rounded p-2 outline-blue-500"
                             />
                         ) : (
@@ -277,7 +278,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                     {isEditing ? (
                         <textarea
                             value={editData.generatedText}
-                            onChange={(e) => setEditData({ ...editData, generatedText: e.target.value })}
+                            onChange={(event) => setEditData({ ...editData, generatedText: event.target.value })}
                             className="w-full h-96 text-black border rounded p-6 outline-blue-500 whitespace-pre-wrap"
                             placeholder="Le contenu n'a pas encore été généré..."
                         />

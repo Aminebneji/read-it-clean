@@ -56,7 +56,7 @@ function extractImageUrl(item: Record<string, unknown>): string | undefined {
             return mediaContent?.['@_url'];
         },
 
-        // enclosure (format standard RSS 2.0)
+        // enclosure (format standard RSS)
         () => {
             const enclosure = Array.isArray(item.enclosure)
                 ? item.enclosure[0]

@@ -19,7 +19,7 @@ export default function PinnedSidebar({ articles }: PinnedSidebarProps) {
             {/* Toggle Button */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed right-0 top-1/2 -translate-y-1/2 bg-blue-600 text-white px-3 py-6 rounded-l-lg shadow-lg hover:bg-blue-700 transition-all z-40 flex items-center gap-2"
+                className="fixed right-0 top-1/4 -translate-y-1/2 bg-red-800 text-white px-3 py-6 rounded-l-lg shadow-lg hover:bg-yellow-800 transition-all z-40 flex items-center gap-2"
                 style={{ right: isOpen ? '320px' : '0' }}
             >
                 <svg
@@ -51,9 +51,7 @@ export default function PinnedSidebar({ articles }: PinnedSidebarProps) {
                         {articles.map((article) => (
                             <Link
                                 key={article.id}
-                                href={article.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                href={`/articles/${article.id}`}
                                 className="block group"
                             >
                                 <article className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-all">
@@ -85,7 +83,7 @@ export default function PinnedSidebar({ articles }: PinnedSidebarProps) {
             {/* Overlay */}
             {isOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-30 z-20"
+                    className="fixed inset-0 bg-black-900 opacity-50 z-20"
                     onClick={() => setIsOpen(false)}
                 />
             )}

@@ -13,8 +13,8 @@ export default function LoginPage() {
         password: "",
     })
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault()
         setIsLoading(true)
         setError("")
 
@@ -64,8 +64,8 @@ export default function LoginPage() {
                                 className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-black focus:border-black focus:z-10 sm:text-sm"
                                 placeholder="Username"
                                 value={formData.username}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, username: e.target.value })
+                                onChange={(event) =>
+                                    setFormData({ ...formData, username: event.target.value })
                                 }
                             />
                         </div>
@@ -81,8 +81,8 @@ export default function LoginPage() {
                                 className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-black focus:border-black focus:z-10 sm:text-sm"
                                 placeholder="Password"
                                 value={formData.password}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, password: e.target.value })
+                                onChange={(event) =>
+                                    setFormData({ ...formData, password: event.target.value })
                                 }
                             />
                         </div>

@@ -33,7 +33,7 @@ export default function ArticleManager() {
                 let filteredArticles = data.data.articles;
                 // Filtrer côté client pour "non générés"
                 if (onlyPending) {
-                    filteredArticles = filteredArticles.filter((a: article) => !a.isGenerated);
+                    filteredArticles = filteredArticles.filter((article: article) => !article.isGenerated);
                 }
                 setArticles(filteredArticles);
                 setPagination(data.data.pagination);
@@ -105,8 +105,8 @@ export default function ArticleManager() {
                         <input
                             type="checkbox"
                             checked={onlyPending}
-                            onChange={(e) => {
-                                setOnlyPending(e.target.checked);
+                            onChange={(event) => {
+                                setOnlyPending(event.target.checked);
                                 setPage(1);
                             }}
                             className="form-checkbox h-5 w-5 text-blue-600"
@@ -166,13 +166,13 @@ export default function ArticleManager() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <button
                                             onClick={() => handleTogglePublish(article.id, article.published)}
-                                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full transition-colors cursor-pointer ${article.published
-                                                ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                            className={`px-3 py-1 rounded text-xs font-bold transition-all ${article.published
+                                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                                : 'bg-green-600 text-white hover:bg-green-700'
                                                 }`}
-                                            title={article.published ? "Dépublier" : "Publier"}
+                                            title={article.published ? "Dépublier l'article" : "Publier l'article"}
                                         >
-                                            {article.published ? '✓ Publié' : '○ Non publié'}
+                                            {article.published ? 'Dépublier' : 'Publier'}
                                         </button>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

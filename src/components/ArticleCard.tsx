@@ -25,7 +25,7 @@ export default function ArticleCard({ article }: ArticleCardProps) {
     };
 
     return (
-        <Link href={article.link} target="_blank" rel="noopener noreferrer">
+        <Link href={`/articles/${article.id}`}>
             <article className="group cursor-pointer bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300 h-full flex flex-col">
                 {article.image && (
                     <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
