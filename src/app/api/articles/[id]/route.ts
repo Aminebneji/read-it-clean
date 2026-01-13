@@ -1,6 +1,6 @@
 import { createErrorResponse, createSuccessResponse } from "@/utils/api.utils";
 import { HTTP_STATUS } from "@/config/constants";
-import { getArticleById, deleteArticle, updateArticle } from "@/services/article.service";
+import { getArticleById, deleteArticle, updateArticle, getArticles } from "@/services/article.service";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/config/auth.config";
 import { NextRequest } from "next/server";
@@ -39,6 +39,19 @@ export async function PATCH(
 
         const body = await request.json();
         const { title, description, generatedText, published, pinned } = body;
+
+        if (pinned === true) {
+            const article = await getArticleById(params.id);
+            if (!article.isGenerated) {
+                return createErrorResponse(new Error("L'article doit être généré avant d'être épinglé"), HTTP_STATUS.BAD_REQUEST);
+            }
+
+            const { articles: currentPinned } = await getArticles({ publishedOnly: false });
+            const pinnedCount = currentPinned.filter((a: any) => a.pinned).length;
+            if (pinnedCount >= 4) {
+                return createErrorResponse(new Error("Nombre maximum d'articles épinglés atteint (4)"), HTTP_STATUS.BAD_REQUEST);
+            }
+        }
 
         const updatedArticle = await updateArticle(params.id, {
             title: title ? sanitizeHtml(title) : undefined,

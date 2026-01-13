@@ -5,6 +5,7 @@ import { article } from "@/types/article.types";
 import FilterBar from "@/components/FilterBar";
 import ArticleGrid from "@/components/ArticleGrid";
 import PinnedSidebar from "@/components/PinnedSidebar";
+import { ModeToggle } from "@/components/mode-toggle";
 
 export default function Home() {
   const [articles, setArticles] = useState<article[]>([]);
@@ -53,6 +54,37 @@ export default function Home() {
 
   useEffect(() => {
     fetchPinnedArticles();
+
+    const eventSource = new EventSource('/api/events');
+
+    const handleRefresh = () => {
+      fetchPinnedArticles();
+      fetchArticles();
+    };
+
+    eventSource.addEventListener('pinChange', () => {
+      console.log('Pinned articles maj reçu via SSE');
+      handleRefresh();
+    });
+
+    eventSource.addEventListener('update', () => {
+      console.log('Mise à jour d article reçu via SSE');
+      handleRefresh();
+    });
+
+    eventSource.addEventListener('delete', () => {
+      console.log('Supression d article reçu via SSE');
+      handleRefresh();
+    });
+
+    eventSource.onerror = (err) => {
+      console.error('SSE Connection Error:', err);
+      eventSource.close();
+    };
+
+    return () => {
+      eventSource.close();
+    };
   }, [fetchPinnedArticles]);
 
   const buildQueryParams = (
@@ -89,20 +121,23 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Read It Clean
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Les dernières actualités de World of Warcraft
-          </p>
+      <header className="bg-card border-b border-border sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+              Read It Clean
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Les dernières actualités de World of Warcraft
+            </p>
+          </div>
+          <ModeToggle />
         </div>
       </header>
 
-      {/* Filter Bar */}
+      {/* Filtre */}
       <FilterBar
         category={category}
         sort={sort}
@@ -123,17 +158,17 @@ export default function Home() {
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-6 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-6 py-2 bg-card border border-border rounded-lg font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 Précédent
               </button>
-              <span className="text-gray-600 font-medium">
+              <span className="text-muted-foreground font-medium">
                 Page {page} sur {totalPages}
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-6 py-2 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-6 py-2 bg-card border border-border rounded-lg font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 Suivant
               </button>
@@ -142,7 +177,7 @@ export default function Home() {
         )}
       </main>
 
-      {/* Pinned Sidebar */}
+      {/* Pinned */}
       <PinnedSidebar articles={pinnedArticles} />
     </div>
   );

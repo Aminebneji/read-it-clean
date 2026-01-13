@@ -2,6 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { article } from "@/types/article.types";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { RefreshCw, ExternalLink, Settings, Star, Trash2, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 interface ArticlePagination {
     page: number;
@@ -16,6 +23,8 @@ export default function ArticleManager() {
     const [onlyPending, setOnlyPending] = useState(false);
     const [pagination, setPagination] = useState<ArticlePagination | null>(null);
     const [page, setPage] = useState(1);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [bunchOfArticleDeletion, setBunchOfArticleDeletion] = useState(false);
 
     const fetchArticles = useCallback(async () => {
         setLoading(true);
@@ -23,20 +32,20 @@ export default function ArticleManager() {
             const queryParams = new URLSearchParams({
                 page: page.toString(),
                 limit: "20",
-                publishedOnly: "false", // Admin voit tous les articles
+                publishedOnly: "false",
             });
 
             const res = await fetch(`/api/articles?${queryParams}`);
             const data = await res.json();
 
             if (data.success) {
-                let filteredArticles = data.data.articles;
-                // Filtrer côté client pour "non générés"
+                let fetchedArticles = data.data.articles;
                 if (onlyPending) {
-                    filteredArticles = filteredArticles.filter((article: article) => !article.isGenerated);
+                    fetchedArticles = fetchedArticles.filter((article: article) => !article.isGenerated);
                 }
-                setArticles(filteredArticles);
+                setArticles(fetchedArticles);
                 setPagination(data.data.pagination);
+                setSelectedIds(new Set());
             }
         } catch (error) {
             console.error("Failed to fetch articles", error);
@@ -77,7 +86,7 @@ export default function ArticleManager() {
             });
             const data = await res.json();
             if (data.success) {
-                setArticles(prev => prev.map(a => a.id === articleId ? { ...a, published: !currentStatus } : a));
+                setArticles(prev => prev.map(a => String(a.id) === String(articleId) ? { ...a, published: !currentStatus } : a));
             } else {
                 alert("Erreur: " + data.error);
             }
@@ -87,130 +96,288 @@ export default function ArticleManager() {
         }
     };
 
+    const handleTogglePin = async (articleId: string, currentStatus: boolean) => {
+        // Validation check avant le pinning
+        if (!currentStatus) {
+            const article = articles.find(a => a.id === articleId);
 
+            // Check si c'est généré
+            if (article && !article.isGenerated) {
+                alert("Impossible d'épingler un article qui n'est pas encore généré par l'IA.");
+                return;
+            }
+
+            // Check la limit d'articles pinned (4)
+            const pinnedCount = articles.filter(a => a.pinned).length;
+            if (pinnedCount >= 4) {
+                alert("Limite atteinte : Vous ne pouvez pas épingler plus de 4 articles à la fois.");
+                return;
+            }
+        }
+
+        // front update sans avoir besoin d'avoir la réponse du serveur donc de request
+        const previousArticles = articles;
+        setArticles(prev => prev.map(a => String(a.id) === String(articleId) ? { ...a, pinned: !currentStatus } : a));
+
+        try {
+            const res = await fetch(`/api/articles/${articleId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ pinned: !currentStatus })
+            });
+            const data = await res.json();
+
+            if (!data.success) {
+                // Revert if server returns error
+                setArticles(previousArticles);
+                alert("Erreur: " + data.error);
+            }
+        } catch (error) {
+            console.error(error);
+            // Revert on network error
+            setArticles(previousArticles);
+            alert("Erreur réseau");
+        }
+    };
+
+    const handleBunchOfArticleDeletion = async () => {
+        if (selectedIds.size === 0) return;
+        if (!confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.size} articles ?`)) return;
+
+        setBunchOfArticleDeletion(true);
+        try {
+            const res = await fetch("/api/admin/articles/bulk", {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ids: Array.from(selectedIds) })
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert("Articles supprimés avec succès");
+                fetchArticles();
+                setSelectedIds(new Set());
+            } else {
+                alert("Erreur lors de la suppression groupée: " + data.error);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erreur réseau");
+        } finally {
+            setBunchOfArticleDeletion(false);
+        }
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === articles.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(articles.map(a => a.id.toString())));
+        }
+    };
+
+    const toggleSelectArticle = (id: string) => {
+        const newSelected = new Set(selectedIds);
+        if (newSelected.has(id)) {
+            newSelected.delete(id);
+        } else {
+            newSelected.add(id);
+        }
+        setSelectedIds(newSelected);
+    };
 
     return (
-        <div className="bg-white shadow rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-gray-800">Gestion des Articles</h2>
-                <div className="flex items-center space-x-4">
-                    <button
-                        onClick={handleSync}
-                        disabled={loading}
-                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm disabled:opacity-50"
-                    >
-                        {loading ? 'Chargement...' : 'Synchroniser RSS'}
-                    </button>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                        <input
-                            type="checkbox"
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-card p-6 rounded-xl border border-border shadow-sm">
+                <div>
+                    <h2 className="text-2xl font-bold text-foreground">Gestion des Articles</h2>
+                    <p className="text-sm text-muted-foreground">Gérez et publiez vos articles synchronisés</p>
+                </div>
+                <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center space-x-2 mr-2">
+                        <Switch
+                            id="pending-only"
                             checked={onlyPending}
-                            onChange={(event) => {
-                                setOnlyPending(event.target.checked);
+                            onCheckedChange={(checked) => {
+                                setOnlyPending(checked);
                                 setPage(1);
                             }}
-                            className="form-checkbox h-5 w-5 text-blue-600"
                         />
-                        <span className="text-gray-700">Non générés uniquement</span>
-                    </label>
+                        <label htmlFor="pending-only" className="text-sm font-medium leading-none cursor-pointer">
+                            Non générés
+                        </label>
+                    </div>
+                    <Button
+                        onClick={handleSync}
+                        disabled={loading}
+                        className="gap-2"
+                        variant="outline"
+                    >
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        Sync RSS
+                    </Button>
                 </div>
             </div>
 
-            {loading ? (
-                <div className="text-center py-8">Chargement...</div>
-            ) : (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titre</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catégorie</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Publication</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {articles.map((article) => (
-                                <tr key={article.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm font-medium text-gray-900 truncate max-w-md" title={article.title}>
-                                            <a href={`/admin/articles/${article.id}`} className="hover:text-blue-600 hover:underline">
-                                                {article.title}
-                                            </a>
-                                        </div>
-                                        <a href={article.link} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline">
-                                            Voir source
-                                        </a>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                            {article.category}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {new Date(article.pubDate || article.createdAt).toLocaleDateString()}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        {article.isGenerated ? (
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                Généré
-                                            </span>
-                                        ) : (
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                                En attente
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <button
-                                            onClick={() => handleTogglePublish(article.id, article.published)}
-                                            className={`px-3 py-1 rounded text-xs font-bold transition-all ${article.published
-                                                ? 'bg-blue-600 text-white hover:bg-blue-700'
-                                                : 'bg-green-600 text-white hover:bg-green-700'
-                                                }`}
-                                            title={article.published ? "Dépublier l'article" : "Publier l'article"}
-                                        >
-                                            {article.published ? 'Dépublier' : 'Publier'}
-                                        </button>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <a
-                                            href={`/admin/articles/${article.id}`}
-                                            className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded"
-                                        >
-                                            Gérer
-                                        </a>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            {/* Bunch of Article Deletion Bar */}
+            {selectedIds.size > 0 && (
+                <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex items-center justify-between animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium text-primary">
+                            {selectedIds.size} article(s) sélectionné(s)
+                        </span>
+                    </div>
+                    <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleBunchOfArticleDeletion}
+                        disabled={bunchOfArticleDeletion}
+                        className="gap-2"
+                    >
+                        {bunchOfArticleDeletion ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        Supprimer la sélection
+                    </Button>
                 </div>
             )}
 
-            {pagination && (
-                <div className="flex justify-between items-center mt-4">
-                    <button
-                        onClick={() => setPage(p => Math.max(1, p - 1))}
-                        disabled={page === 1}
-                        className="px-4 py-2 border rounded text-sm text-black disabled:text-gray-400"
-                    >
-                        Précédent
-                    </button>
-                    <span className="text-sm text-gray-700">
-                        Page {pagination.page} sur {pagination.totalPages}
-                    </span>
-                    <button
-                        onClick={() => setPage(p => Math.min(pagination.totalPages, p + 1))}
-                        disabled={page === pagination.totalPages}
-                        className="px-4 py-2 border rounded text-sm text-black disabled:text-gray-400"
-                    >
-                        Suivant
-                    </button>
-                </div>
-            )}
+            <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="hover:bg-transparent">
+                            <TableHead className="w-[50px]">
+                                <Checkbox
+                                    checked={articles.length > 0 && selectedIds.size === articles.length}
+                                    onCheckedChange={toggleSelectAll}
+                                />
+                            </TableHead>
+                            <TableHead className="w-[40px]"></TableHead>
+                            <TableHead className="min-w-[300px]">Titre</TableHead>
+                            <TableHead>Catégorie</TableHead>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Public</TableHead>
+                            <TableHead className="text-right">Action</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {loading && articles.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={8} className="text-center py-20">
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+                                        <p className="text-muted-foreground">Chargement des articles...</p>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ) : articles.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={8} className="text-center py-20 text-muted-foreground italic">
+                                    Aucun article trouvé.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            articles.map((article) => (
+                                <TableRow key={article.id} className={selectedIds.has(article.id.toString()) ? "bg-primary/5" : ""}>
+                                    <TableCell>
+                                        <Checkbox
+                                            checked={selectedIds.has(article.id.toString())}
+                                            onCheckedChange={() => toggleSelectArticle(article.id.toString())}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className={`h-8 w-8 transition-colors duration-200 ${article.pinned ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-foreground"}`}
+                                            onClick={() => handleTogglePin(article.id.toString(), article.pinned)}
+                                        >
+                                            <Star className={`h-4 w-4 transition-transform duration-200 ${article.pinned ? "fill-current scale-110" : "scale-100"}`} />
+                                        </Button>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="space-y-1">
+                                            <Link
+                                                href={`/admin/articles/${article.id}`}
+                                                className="font-medium hover:text-primary transition-colors line-clamp-1"
+                                            >
+                                                {article.title}
+                                            </Link>
+                                            <a
+                                                href={article.link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-1 uppercase tracking-tight"
+                                            >
+                                                <ExternalLink className="w-3 h-3" />
+                                                Source Originale
+                                            </a>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant="secondary" className="font-normal">{article.category}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                                        {new Date(article.pubDate || article.createdAt).toLocaleDateString()}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant={article.isGenerated ? "success" : "warning"} className="text-[10px] py-0 h-5">
+                                            {article.isGenerated ? 'Généré' : 'À faire'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Switch
+                                            checked={article.published}
+                                            onCheckedChange={() => handleTogglePublish(article.id.toString(), article.published)}
+                                            className="scale-75"
+                                        />
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="sm" asChild className="h-8">
+                                            <Link href={`/admin/articles/${article.id}`}>
+                                                <Settings className="w-3.5 h-3.5 mr-1.5" />
+                                                Gérer
+                                            </Link>
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+
+                {pagination && pagination.totalPages > 1 && (
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/30">
+                        <div className="text-xs text-muted-foreground">
+                            Article {((page - 1) * 20) + 1} à {Math.min(page * 20, pagination.total)} sur {pagination.total}
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setPage(p => Math.max(1, p - 1));
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                disabled={page === 1}
+                                className="h-8"
+                            >
+                                Précédent
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                    setPage(p => Math.min(pagination.totalPages, p + 1));
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                disabled={page === pagination.totalPages}
+                                className="h-8"
+                            >
+                                Suivant
+                            </Button>
+                        </div>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }

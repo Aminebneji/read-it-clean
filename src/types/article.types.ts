@@ -13,4 +13,5 @@ export interface article {
     generatedText?: string;
     isGenerated: boolean;
     generatedAt?: string;
+    pinned: boolean;
 }

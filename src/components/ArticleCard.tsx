@@ -1,6 +1,8 @@
 import { article } from "@/types/article.types";
 import Image from "next/image";
 import Link from "next/link";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface ArticleCardProps {
     article: article;
@@ -13,22 +15,22 @@ export default function ArticleCard({ article }: ArticleCardProps) {
         year: 'numeric'
     });
 
-    const getCategoryColor = (category: string) => {
+    const getBadgeVariant = (category: string) => {
         switch (category) {
             case 'Classic':
-                return 'bg-amber-100 text-amber-800 border-amber-200';
+                return "warning"; // We might need to define this or use custom colors
             case 'Retail':
-                return 'bg-blue-100 text-blue-800 border-blue-200';
+                return "default";
             default:
-                return 'bg-gray-100 text-gray-800 border-gray-200';
+                return "secondary";
         }
     };
 
     return (
-        <Link href={`/articles/${article.id}`}>
-            <article className="group cursor-pointer bg-white rounded-lg overflow-hidden border border-gray-200 hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+        <Link href={`/articles/${article.id}`} className="block h-full">
+            <Card className="overflow-hidden border-border bg-card hover:shadow-lg transition-all duration-300 h-full flex flex-col group">
                 {article.image && (
-                    <div className="relative w-full h-48 bg-gray-100 overflow-hidden">
+                    <div className="relative w-full h-48 bg-muted overflow-hidden">
                         <Image
                             src={article.image}
                             alt={article.title}
@@ -37,23 +39,28 @@ export default function ArticleCard({ article }: ArticleCardProps) {
                         />
                     </div>
                 )}
-                <div className="p-5 flex-1 flex flex-col">
-                    <div className="flex items-center gap-2 mb-3">
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${getCategoryColor(article.category || 'Blizzard')}`}>
+                <CardHeader className="p-5 pb-2">
+                    <div className="flex items-center gap-2">
+                        <Badge
+                            variant={article.category === 'Classic' ? 'outline' : 'default'}
+                            className={article.category === 'Classic' ? 'border-amber-500 text-amber-500' : ''}
+                        >
                             {article.category || 'Blizzard'}
-                        </span>
-                        <span className="text-xs text-gray-500">{formattedDate}</span>
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">{formattedDate}</span>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                </CardHeader>
+                <CardContent className="p-5 pt-0 flex-1">
+                    <h2 className="text-xl font-bold text-card-foreground mb-2 group-hover:text-primary transition-colors line-clamp-2">
                         {article.title}
                     </h2>
                     {article.description && (
-                        <p className="text-gray-600 text-sm line-clamp-3 flex-1">
+                        <p className="text-muted-foreground text-sm line-clamp-3">
                             {article.description}
                         </p>
                     )}
-                </div>
-            </article>
+                </CardContent>
+            </Card>
         </Link>
     );
 }

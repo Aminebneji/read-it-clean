@@ -3,6 +3,7 @@ import { RSSItem } from "@/types/rss.types";
 import { logger } from "@/utils/logger.utils";
 import { AppError } from "@/utils/error.utils";
 import { category, Prisma } from "@prisma/client";
+import { ARTICLE_EVENTS, articleEventEmitter } from "@/utils/events.utils";
 
 function mapCategory(catString?: string): category {
     if (!catString) return category.Blizzard;
@@ -128,7 +129,7 @@ export async function getArticleById(id: string) {
     return article;
 }
 
-// Met à jour le texte généré pour un article
+// Met à jour le texte d'un un article
 export async function updateArticleWithGeneratedText(id: string, generatedText: string) {
     return updateArticle(id, {
         generatedText,
@@ -137,7 +138,7 @@ export async function updateArticleWithGeneratedText(id: string, generatedText: 
     });
 }
 
-// Met à jour un article avec des inputs
+// Met à jour un article
 export async function updateArticle(id: string, data: Prisma.ArticleUpdateInput) {
     try {
         const article = await prisma.article.update({
@@ -146,6 +147,13 @@ export async function updateArticle(id: string, data: Prisma.ArticleUpdateInput)
         });
 
         logger.success(`Article updated: ${article.title}`);
+
+        // EventEmitter pour push l'info de pin 
+        articleEventEmitter.emit(ARTICLE_EVENTS.UPDATED, article);
+        if (data.pinned !== undefined) {
+            articleEventEmitter.emit(ARTICLE_EVENTS.PINNED_CHANGED, article);
+        }
+
         return article;
     } catch (error) {
         logger.error(`Failed to update article: ${id}`, error);
@@ -160,8 +168,30 @@ export async function deleteArticle(id: string) {
             where: { id: parseInt(id) },
         });
         logger.success(`Article deleted: ${id}`);
+
+        // Emit event for SSE
+        articleEventEmitter.emit(ARTICLE_EVENTS.DELETED, id);
+        articleEventEmitter.emit(ARTICLE_EVENTS.UPDATED); // Broad refresh signal
     } catch (error) {
         logger.error(`Failed to delete article: ${id}`, error);
+        throw error;
+    }
+}
+
+// Supprime plusieurs articles
+export async function deleteArticlesBulk(ids: number[]) {
+    try {
+        await prisma.article.deleteMany({
+            where: {
+                id: { in: ids }
+            }
+        });
+        logger.success(`Bulk delete completed for ${ids.length} articles`);
+
+        articleEventEmitter.emit(ARTICLE_EVENTS.DELETED, ids);
+        articleEventEmitter.emit(ARTICLE_EVENTS.UPDATED);
+    } catch (error) {
+        logger.error(`Failed to bulk delete articles: ${ids.join(', ')}`, error);
         throw error;
     }
 }

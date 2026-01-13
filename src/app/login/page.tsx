@@ -3,6 +3,11 @@
 import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function LoginPage() {
     const router = useRouter()
@@ -26,85 +31,77 @@ export default function LoginPage() {
             })
 
             if (result?.error) {
-                setError("Invalid credentials")
+                setError("Identifiants invalides")
             } else {
                 router.push("/admin")
                 router.refresh()
             }
         } catch (err) {
             console.error(err);
-            setError("Something went wrong")
+            setError("Une erreur est survenue")
         } finally {
             setIsLoading(false)
         }
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg border border-gray-100">
-                <div className="text-center">
-                    <h2 className="text-3xl font-extrabold text-gray-900">
+        <div className="min-h-screen flex items-center justify-center bg-background px-4 transition-colors duration-300">
+            <Card className="max-w-md w-full shadow-lg border-border bg-card">
+                <CardHeader className="text-center space-y-1">
+                    <CardTitle className="text-3xl font-extrabold text-foreground">
                         Admin
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600">
-                        Please sign in to continue
-                    </p>
-                </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-                    <div className="rounded-md shadow-sm space-y-4">
-                        <div>
-                            <label htmlFor="username" className="sr-only">
-                                Username
-                            </label>
-                            <input
-                                id="username"
-                                name="username"
-                                type="text"
-                                required
-                                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-black focus:border-black focus:z-10 sm:text-sm"
-                                placeholder="Username"
-                                value={formData.username}
-                                onChange={(event) =>
-                                    setFormData({ ...formData, username: event.target.value })
-                                }
-                            />
+                    </CardTitle>
+                    <CardDescription className="text-muted-foreground">
+                        Veuillez vous connecter pour continuer
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="username">Nom d'utilisateur</Label>
+                                <Input
+                                    id="username"
+                                    type="text"
+                                    required
+                                    placeholder="Username"
+                                    value={formData.username}
+                                    onChange={(event) =>
+                                        setFormData({ ...formData, username: event.target.value })
+                                    }
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Mot de passe</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    required
+                                    placeholder="Password"
+                                    value={formData.password}
+                                    onChange={(event) =>
+                                        setFormData({ ...formData, password: event.target.value })
+                                    }
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label htmlFor="password" className="sr-only">
-                                Password
-                            </label>
-                            <input
-                                id="password"
-                                name="password"
-                                type="password"
-                                required
-                                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-black focus:border-black focus:z-10 sm:text-sm"
-                                placeholder="Password"
-                                value={formData.password}
-                                onChange={(event) =>
-                                    setFormData({ ...formData, password: event.target.value })
-                                }
-                            />
-                        </div>
-                    </div>
 
-                    {error && (
-                        <div className="text-red-500 text-sm text-center bg-red-50 p-2 rounded">
-                            {error}
-                        </div>
-                    )}
+                        {error && (
+                            <Alert variant="destructive">
+                                <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                        )}
 
-                    <div>
-                        <button
+                        <Button
                             type="submit"
+                            className="w-full"
                             disabled={isLoading}
-                            className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
                         >
-                            {isLoading ? "Signing in..." : "Sign in"}
-                        </button>
-                    </div>
-                </form>
-            </div>
+                            {isLoading ? "Connexion..." : "Se connecter"}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     )
 }
