@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import { useState, useEffect, useCallback } from "react";
 import { article } from "@/types/article.types";
 import FilterBar from "@/components/FilterBar";
@@ -120,32 +119,58 @@ export default function Home() {
     setPage(1);
   };
 
+
+
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+      {/* Fixed  */}
+      <div className="fixed right-6 top-4 z-[60]">
+        <ModeToggle />
+      </div>
+
+      {/* LOGO Section */}
+      {/* <div
+        className="w-full overflow-hidden flex items-center justify-start px-6 md:px-12 relative pointer-events-none"
+      >
+        <div className="flex items-center relative gap-4">
+          <div
+            className="absolute -left-14 top-1/3 -translate-y-1/2 z-0"
+          >
+            <Image
+              src="/RICLOGO.png"
+              alt="Read It Clean Logo"
+              width={540}
+              height={540}
+              className="rounded-full opacity-60 dark:opacity-40 drop-shadow-2xl saturate-[1.2] brightness-[0.9] dark:brightness-100 dark:saturate-100"
+              priority
+            />
+          </div>
+
+          <div className="relative z-10 flex flex-col justify-center">
+            <h1 className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 leading-tight drop-shadow-[0_2px_2px_rgba(255,255,255,0.8)] dark:drop-shadow-none">
               Read It Clean
             </h1>
-            <p className="text-muted-foreground text-sm mt-1">
+            <p className="text-muted-foreground text-xs font-bold hidden md:block">
               Les dernières actualités de World of Warcraft
             </p>
           </div>
-          <ModeToggle />
+        </div>
+      </div> */}
+
+
+      {/* FilterBar */}
+      <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md transition-all duration-300">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <FilterBar
+            category={category}
+            sort={sort}
+            search={search}
+            onCategoryChange={handleCategoryChange}
+            onSortChange={handleSortChange}
+            onSearchChange={handleSearchChange}
+          />
         </div>
       </header>
-
-      {/* Filtre */}
-      <FilterBar
-        category={category}
-        sort={sort}
-        search={search}
-        onCategoryChange={handleCategoryChange}
-        onSortChange={handleSortChange}
-        onSearchChange={handleSearchChange}
-      />
 
       {/* Main Content */}
       <main className="pb-12">

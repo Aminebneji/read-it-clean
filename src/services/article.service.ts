@@ -6,11 +6,10 @@ import { category, Prisma } from "@prisma/client";
 import { ARTICLE_EVENTS, articleEventEmitter } from "@/utils/events.utils";
 
 function mapCategory(catString?: string): category {
-    if (!catString) return category.Blizzard;
+    if (!catString) return category.Retail;
     const normalized = catString.toLowerCase();
     if (normalized.includes('classic')) return category.Classic;
-    if (normalized.includes('retail')) return category.Retail;
-    return category.Blizzard;
+    return category.Retail;
 }
 
 // Sauvegarde un article RSS en DB 
@@ -194,4 +193,48 @@ export async function deleteArticlesBulk(ids: number[]) {
         logger.error(`Failed to bulk delete articles: ${ids.join(', ')}`, error);
         throw error;
     }
+}
+
+// Récupère des articles similaires basés sur des mots-clés du titre et la catégorie
+export async function getSimilarArticles(articleId: number, category: category, title: string, limit: number = 3) {
+    // Extraction de mots-clés simples (mots de plus de 3 lettres, sans les mots communs)
+    const stopWords = new Set(['dans', 'pour', 'avec', 'plus', 'fait', 'tous', 'cette', 'ceux', 'leurs', 'mais', 'elle', 'nous', 'vous', 'votre', 'leur']);
+    const keywords = title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .split(/\s+/)
+        .filter(word => word.length > 3 && !stopWords.has(word))
+        .slice(0, 5); // On prend les 5 premiers mots significatifs
+
+    // On cherche d'abord avec les mots-clés
+    let similar = await prisma.article.findMany({
+        where: {
+            id: { not: articleId },
+            published: true,
+            OR: keywords.map(keyword => ({
+                title: { contains: keyword, mode: 'insensitive' }
+            })),
+        },
+        take: limit,
+        orderBy: { pubDate: 'desc' },
+    });
+
+    // Si on n'a pas assez de résultats, on cherche la catégorie
+    if (similar.length < limit) {
+        const remaining = limit - similar.length;
+        const fallback = await prisma.article.findMany({
+            where: {
+                id: {
+                    notIn: [articleId, ...similar.map(a => a.id)]
+                },
+                category,
+                published: true,
+            },
+            take: remaining,
+            orderBy: { pubDate: 'desc' },
+        });
+        similar = [...similar, ...fallback];
+    }
+
+    return similar;
 }

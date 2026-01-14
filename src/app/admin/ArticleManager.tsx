@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RefreshCw, ExternalLink, Settings, Star, Trash2, Loader2 } from "lucide-react";
+import { RefreshCcw as RefreshCw, ExternalLink, Cog as Settings, Star, Trash2, Loader as Loader2 } from "@/components/Icons";
 import Link from "next/link";
 
 interface ArticlePagination {
@@ -254,7 +254,7 @@ export default function ArticleManager() {
                             <TableHead>Catégorie</TableHead>
                             <TableHead>Date</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead>Public</TableHead>
+                            <TableHead>Publié</TableHead>
                             <TableHead className="text-right">Action</TableHead>
                         </TableRow>
                     </TableHeader>

@@ -1,8 +1,8 @@
-import { getArticleById } from "@/services/article.service";
+import { getArticleById, getSimilarArticles } from "@/services/article.service";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, ExternalLink } from "lucide-react";
+import { ChevronLeft, ExternalLink } from "@/components/Icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ModeToggle } from "@/components/mode-toggle";
@@ -17,7 +17,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
     let article;
     try {
         article = await getArticleById(id);
-    } catch (error) {
+    } catch {
         notFound();
     }
 
@@ -27,103 +27,146 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         year: 'numeric'
     });
 
+    const similarArticles = await getSimilarArticles(article.id, article.category, article.title);
+
     return (
         <div className="min-h-screen bg-background text-foreground pb-20 transition-colors duration-300">
-            {/* Navigation Header */}
-            <nav className="bg-card/80 backdrop-blur-md sticky top-0 z-50 border-b border-border">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-                    <Button variant="ghost" asChild className="group">
-                        <Link href="/" className="flex items-center gap-2">
-                            <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                            <span className="font-medium">Retour</span>
-                        </Link>
-                    </Button>
-                    <div className="flex items-center gap-4">
-                        <div className="hidden sm:block text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            Lecture Article
+            <nav className="fixed top-0 left-0 right-0 z-[60] py-4 bg-background/0 backdrop-blur-none transition-all duration-300">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
+                    <Link href="/" className="flex items-center gap-2 group">
+                        <div className="relative w-16 h-16 md:w-20 md:h-20 transition-transform group-hover:scale-110">
+                            <Image
+                                src="/RICLOGO.png"
+                                alt="Read It Clean Logo"
+                                fill
+                                className="rounded-full opacity-90 dark:opacity-80 drop-shadow-2xl saturate-[1.2] brightness-[0.9] dark:brightness-100 dark:saturate-100 object-contain"
+                                priority
+                            />
                         </div>
-                        <ModeToggle />
-                    </div>
+                    </Link>
+                    <ModeToggle />
                 </div>
             </nav>
 
-            <article className="max-w-4xl mx-auto mt-8 px-4 sm:px-6">
-                {/* Hero Section */}
-                <div className="relative h-[250px] md:h-[400px] w-full rounded-2xl overflow-hidden shadow-xl mb-8 group">
-                    {article.image ? (
-                        <Image
-                            src={article.image}
-                            alt={article.title}
-                            fill
-                            className="object-cover"
-                            priority
-                        />
-                    ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-primary/80 to-primary/40 flex items-center justify-center">
-                            <span className="text-primary-foreground text-4xl font-bold opacity-20 uppercase tracking-tighter">Read It Clean</span>
-                        </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
-                    <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10">
-                        <div className="flex items-center gap-3 mb-4">
+            <section className="relative h-[60vh] md:h-[75vh] w-full overflow-hidden">
+                {article.image ? (
+                    <Image
+                        src={article.image}
+                        alt={article.title}
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                        <span className="text-primary/10 text-9xl font-black uppercase tracking-tighter select-none">Read It Clean</span>
+                    </div>
+                )}
+
+                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-background via-background/60 to-transparent z-10" />
+                <div className="absolute inset-0 bg-black/20 z-0" />
+
+                <div className="absolute inset-0 z-20 flex flex-col justify-end pb-32 md:pb-48 px-4">
+                    <div className="max-w-4xl mx-auto w-full text-center md:text-left">
+                        <div className="flex items-center justify-center md:justify-start gap-4 mb-6">
                             <Badge
-                                variant={article.category === 'Classic' ? 'outline' : 'default'}
-                                className={article.category === 'Classic' ? 'border-amber-500 text-amber-500 bg-amber-500/10' : ''}
+                                variant="outline"
+                                className={`text-[10px] md:text-xs uppercase tracking-[0.2em] font-black border-none px-4 py-1.5 ${article.category === 'Classic'
+                                    ? 'text-amber-500 bg-amber-500/20'
+                                    : 'text-blue-500 bg-blue-500/20'
+                                    }`}
                             >
-                                {article.category || 'Blizzard'}
+                                {article.category}
                             </Badge>
-                            <span className="text-white/80 text-sm font-medium">{formattedDate}</span>
+                            <span className="text-foreground/60 text-xs font-bold uppercase tracking-widest">{formattedDate}</span>
                         </div>
-                        <h1 className="text-2xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight drop-shadow-lg">
+                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-foreground leading-[1.1] tracking-tight drop-shadow-2xl">
                             {article.title}
                         </h1>
                     </div>
                 </div>
+            </section>
 
-                {/* Content */}
-                <div className="bg-card rounded-3xl shadow-sm border border-border p-8 md:p-12 transition-colors duration-300">
-                    <div className="max-w-none text-card-foreground leading-relaxed">
+            {/* Article Content */}
+            <article className="max-w-4xl mx-auto px-4 sm:px-6 -mt-24 md:-mt-32 relative z-30">
+                <div className="bg-card/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-border/50 p-8 md:p-16 transition-all duration-500 hover:bg-card/90">
+                    <div className="prose prose-lg dark:prose-invert max-w-none">
                         {article.generatedText ? (
                             <div
-                                className="whitespace-pre-wrap space-y-4 text-lg md:text-xl font-medium antialiased text-foreground/90"
+                                className="whitespace-pre-wrap space-y-8 text-xl md:text-2xl font-medium antialiased text-foreground/90 leading-relaxed font-serif"
                                 dangerouslySetInnerHTML={{ __html: article.generatedText.replace(/\n\n/g, '<br /><br />') }}
                             />
                         ) : article.description ? (
                             <div
-                                className="whitespace-pre-wrap space-y-4 text-muted-foreground"
+                                className="whitespace-pre-wrap space-y-6 text-muted-foreground text-lg md:text-xl"
                                 dangerouslySetInnerHTML={{ __html: article.description }}
                             />
                         ) : (
-                            <p className="italic text-muted-foreground">Aucun contenu disponible pour cet article.</p>
+                            <p className="italic text-muted-foreground text-center py-20 grayscale opacity-50">Aucun contenu disponible pour cet article.</p>
                         )}
                     </div>
 
-                    <div className="mt-12 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center text-primary">
-                                <ExternalLink className="w-6 h-6" />
+                    <div className="mt-20 pt-12 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-8">
+                        <div className="flex items-center gap-6 group">
+                            <div className="w-16 h-16 bg-primary/5 rounded-2xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform duration-300">
+                                <ExternalLink className="w-8 h-8" />
                             </div>
                             <div>
-                                <p className="text-sm font-bold text-foreground uppercase tracking-wider">Source Originale</p>
+                                <p className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] mb-1">Source Originale</p>
                                 <a
                                     href={article.link}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-primary hover:underline transition-colors text-sm break-all"
+                                    className="text-primary hover:text-primary/80 transition-all font-bold text-lg border-b-2 border-primary/20 hover:border-primary"
                                 >
-                                    Consulter sur WowHead
+                                    Lire sur WowHead
                                 </a>
                             </div>
                         </div>
-
-                        <Button size="lg" asChild>
-                            <Link href="/">
-                                Retour à la Home
-                            </Link>
-                        </Button>
                     </div>
                 </div>
             </article>
+
+            {/* Similar Articles */}
+            {similarArticles.length > 0 && (
+                <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-24">
+                    <div className="flex flex-col items-center mb-12">
+                        <Badge variant="outline" className="mb-4 text-[10px] uppercase tracking-[0.3em] font-black py-1.5 px-4 bg-primary/5 border-none">À lire ensuite</Badge>
+                        <h2 className="text-3xl md:text-5xl font-black text-center leading-tight">Articles Similaires</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {similarArticles.map((item) => (
+                            <Link key={item.id} href={`/articles/${item.id}`} className="group flex flex-col h-full bg-card/40 backdrop-blur-md rounded-[2rem] border border-border/40 overflow-hidden hover:bg-card/60 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+                                <div className="relative h-48 w-full overflow-hidden">
+                                    {item.image ? (
+                                        <Image
+                                            src={item.image}
+                                            alt={item.title}
+                                            fill
+                                            className="object-cover group-hover:scale-105 transition-transform duration-700"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full bg-primary/5" />
+                                    )}
+                                </div>
+                                <div className="p-6 flex flex-col flex-1">
+                                    <Badge variant="outline" className={`text-[9px] uppercase tracking-widest font-black border-none px-2 py-0.5 w-fit mb-4 ${item.category === 'Classic' ? 'text-amber-500 bg-amber-500/10' : 'text-blue-500 bg-blue-500/10'}`}>
+                                        {item.category}
+                                    </Badge>
+                                    <h3 className="text-lg font-bold leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                                        {item.title}
+                                    </h3>
+                                    <div className="mt-auto pt-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Lire l'article →</span>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </section>
+            )}
         </div>
     );
 }
+
+

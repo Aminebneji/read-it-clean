@@ -16,6 +16,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Read It Clean",
   description: "Lisez mieux que sur Wowhead avec Read It Clean",
+  icons: {
+    icon: "/RICLOGO.png",
+    apple: "/RICLOGO.png",
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({

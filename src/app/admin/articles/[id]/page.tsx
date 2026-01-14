@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, Save, Trash2, Wand2, Undo2, Edit3, Globe, Calendar, CheckCircle2, Clock, RefreshCw, ExternalLink } from "lucide-react";
+import { ChevronLeft, Save, Trash2, Wand as Wand2, Undo as Undo2, Pen as Edit3, Globe, Calendar, CheckCircle as CheckCircle2, Clock, RefreshCcw as RefreshCw, ExternalLink } from "@/components/Icons";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -146,7 +146,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
         <div className="min-h-screen bg-background flex items-center justify-center">
             <div className="animate-pulse flex items-center gap-2">
                 <Clock className="w-5 h-5 animate-spin text-primary" />
-                <span className="text-lg font-medium">Chargement de l'article...</span>
+                <span className="text-lg font-medium">Chargement de l&apos;article...</span>
             </div>
         </div>
     );
@@ -206,7 +206,14 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                         />
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                             <div className="flex items-center gap-3">
-                                <Badge variant="outline" className="bg-background/20 text-white border-white/50 backdrop-blur-sm">
+                                <Badge
+                                    variant="outline"
+                                    className={
+                                        article.category === 'Classic'
+                                            ? 'bg-amber-500/20 text-amber-500 border-amber-500/50 backdrop-blur-sm'
+                                            : 'bg-blue-500/20 text-blue-500 border-blue-500/50 backdrop-blur-sm'
+                                    }
+                                >
                                     {article.category}
                                 </Badge>
                                 <div className="flex items-center gap-1 text-white/80 text-sm">
@@ -223,8 +230,8 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                         <Card>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0">
                                 <div className="space-y-1">
-                                    <CardTitle>Détails de l'article</CardTitle>
-                                    <CardDescription>Modifiez les informations de base de l'article</CardDescription>
+                                    <CardTitle>Détails de l&apos;article</CardTitle>
+                                    <CardDescription>Modifiez les informations de base de l&apos;article</CardDescription>
                                 </div>
                                 <Button
                                     variant={isEditing ? "outline" : "ghost"}
@@ -270,7 +277,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                             value={editData.description}
                                             onChange={(e) => setEditData({ ...editData, description: e.target.value })}
                                             className="min-h-[100px]"
-                                            placeholder="Description de l'article source..."
+                                            placeholder="Description de l&apos;article source..."
                                         />
                                     ) : (
                                         <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground border border-border">
@@ -378,7 +385,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                 <Button variant="outline" size="sm" className="w-full" asChild>
                                     <a href={article.link} target="_blank" rel="noopener noreferrer">
                                         <ExternalLink className="w-3 h-3 mr-2" />
-                                        Lien d'origine (Wowhead)
+                                        Lien d&apos;origine (Wowhead)
                                     </a>
                                 </Button>
                             </CardContent>

@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search } from "./Icons";
 import { Input } from "@/components/ui/input";
 import {
     Select,
@@ -27,8 +27,8 @@ export default function FilterBar({
     onSearchChange,
 }: FilterBarProps) {
     return (
-        <div className="bg-card border-b border-border sticky top-14 z-40 shadow-sm transition-colors duration-300">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="w-full transition-colors duration-300">
+            <div className="max-w-7xl mx-auto py-1">
                 <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                     {/* Search Bar */}
                     <div className="w-full md:w-96">

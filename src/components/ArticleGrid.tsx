@@ -1,7 +1,7 @@
 import { article } from "@/types/article.types";
 import ArticleCard from "./ArticleCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FileQuestion } from "lucide-react";
+import { Newspaper } from "./Icons";
 
 interface ArticleGridProps {
     articles: article[];
@@ -30,7 +30,7 @@ export default function ArticleGrid({ articles, loading }: ArticleGridProps) {
     if (articles.length === 0) {
         return (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-                <FileQuestion className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50" />
+                <Newspaper className="w-16 h-16 text-muted-foreground mb-4 opacity-20" />
                 <h3 className="text-xl font-semibold text-foreground mb-2">Aucun article trouvé</h3>
                 <p className="text-muted-foreground">Essayez de modifier vos filtres de recherche</p>
             </div>
@@ -40,8 +40,8 @@ export default function ArticleGrid({ articles, loading }: ArticleGridProps) {
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {articles.map((article) => (
-                    <ArticleCard key={article.id} article={article} />
+                {articles.map((article, index) => (
+                    <ArticleCard key={article.id} article={article} index={index} />
                 ))}
             </div>
         </div>

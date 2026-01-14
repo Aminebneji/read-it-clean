@@ -1,8 +1,7 @@
 import { article } from "@/types/article.types";
-import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Pin, ChevronLeft } from "lucide-react";
+import { Pin, ChevronLeft } from "./Icons";
 import {
     Sheet,
     SheetContent,
@@ -24,7 +23,7 @@ export default function PinnedSidebar({ articles }: PinnedSidebarProps) {
         <Sheet>
             <SheetTrigger asChild>
                 <Button
-                    className="fixed right-0 top-1/4 -translate-y-1/2 bg-primary text-primary-foreground px-3 py-6 rounded-l-lg shadow-lg hover:bg-primary/90 transition-all z-40 flex items-center gap-2"
+                    className="fixed mr-5 right-0 top-1/4 -translate-y-1/2 bg-primary text-primary-foreground px-3 py-6 rounded-l-lg shadow-lg hover:bg-primary/90 transition-all z-40 flex items-center gap-2"
                 >
                     <ChevronLeft className="w-5 h-5" />
                     <span className="text-sm font-medium whitespace-nowrap">
@@ -32,7 +31,7 @@ export default function PinnedSidebar({ articles }: PinnedSidebarProps) {
                     </span>
                 </Button>
             </SheetTrigger>
-            <SheetContent className="w-80 sm:w-96 overflow-y-auto bg-card border-l border-border">
+            <SheetContent hideClose className="w-80 sm:w-96 overflow-y-auto bg-card border-l border-border">
                 <SheetHeader className="mb-6">
                     <SheetTitle className="flex items-center gap-2 text-foreground">
                         <Pin className="w-5 h-5 text-primary" />
@@ -48,12 +47,12 @@ export default function PinnedSidebar({ articles }: PinnedSidebarProps) {
                         >
                             <Card className="overflow-hidden border-border bg-card/50 hover:bg-accent transition-colors">
                                 {article.image && (
-                                    <div className="relative w-full h-32 bg-muted">
+                                    <div className="relative bottom-6 w-full h-52 bg-muted">
                                         <Image
                                             src={article.image}
                                             alt={article.title}
                                             fill
-                                            className="object-cover group-hover:scale-105 transition-transform"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                         />
                                     </div>
                                 )}
