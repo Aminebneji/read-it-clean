@@ -55,7 +55,7 @@ export function isValidUrl(url: string): boolean {
 
 interface UsageData {
     tokens: number;
-    lastReset: string; // ISO Date
+    lastReset: string; // ISO
 }
 
 

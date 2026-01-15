@@ -48,7 +48,6 @@ export default function ArticleManager() {
                 setSelectedIds(new Set());
             }
         } catch (error) {
-            // Silently fail or handled by UI
         } finally {
             setLoading(false);
         }
