@@ -5,12 +5,12 @@ import { article } from "@/types/article.types";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, Save, Trash2, Wand as Wand2, Undo as Undo2, Pen as Edit3, Globe, Calendar, CheckCircle as CheckCircle2, Clock, RefreshCcw as RefreshCw, ExternalLink } from "@/components/Icons";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import RichTextEditor from "@/components/RichTextEditor";
 
 export default function ArticleDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = use(props.params);
@@ -24,7 +24,12 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
         generatedText: ""
     });
     const [saving, setSaving] = useState(false);
+    const [mounted, setMounted] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         const fetchArticle = async () => {
@@ -218,7 +223,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                 </Badge>
                                 <div className="flex items-center gap-1 text-white/80 text-sm">
                                     <Calendar className="w-3 h-3" />
-                                    {new Date(article.pubDate || article.createdAt).toLocaleDateString()}
+                                    {mounted ? new Date(article.pubDate || article.createdAt).toLocaleDateString('fr-FR') : "..."}
                                 </div>
                             </div>
                         </div>
@@ -272,16 +277,18 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                 <div className="space-y-2">
                                     <Label htmlFor="description">Description (RSS)</Label>
                                     {isEditing ? (
-                                        <Textarea
-                                            id="description"
-                                            value={editData.description}
-                                            onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-                                            className="min-h-[100px]"
-                                            placeholder="Description de l&apos;article source..."
+                                        <RichTextEditor
+                                            mode="simple"
+                                            content={editData.description}
+                                            onChange={(content) => setEditData({ ...editData, description: content })}
                                         />
                                     ) : (
                                         <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground border border-border">
-                                            {article.description || "Aucune description."}
+                                            {article.description ? (
+                                                <div className="prose dark:prose-invert prose-sm" dangerouslySetInnerHTML={{ __html: article.description }} />
+                                            ) : (
+                                                "Aucune description."
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -317,15 +324,20 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                         </div>
                                     </div>
                                     {isEditing ? (
-                                        <Textarea
-                                            value={editData.generatedText}
-                                            onChange={(e) => setEditData({ ...editData, generatedText: e.target.value })}
-                                            className="min-h-[400px] leading-relaxed"
-                                            placeholder="Le contenu n'a pas encore été généré..."
+                                        <RichTextEditor
+                                            content={editData.generatedText}
+                                            onChange={(content) => setEditData({ ...editData, generatedText: content })}
                                         />
                                     ) : (
-                                        <div className="min-h-[200px] p-6 bg-muted/30 rounded-lg border border-border whitespace-pre-wrap leading-relaxed italic text-muted-foreground">
-                                            {article.generatedText || "Le contenu n'a pas encore été généré."}
+                                        <div className="min-h-[200px] p-6 bg-muted/30 rounded-lg border border-border leading-relaxed text-muted-foreground">
+                                            {article.generatedText ? (
+                                                <div
+                                                    className="prose dark:prose-invert max-w-none"
+                                                    dangerouslySetInnerHTML={{ __html: article.generatedText }}
+                                                />
+                                            ) : (
+                                                <p className="italic">Le contenu n'a pas encore été généré.</p>
+                                            )}
                                         </div>
                                     )}
                                 </div>

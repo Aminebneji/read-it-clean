@@ -71,9 +71,10 @@ export default function ArticleCard({ article, index = 0 }: ArticleCardProps) {
                             {article.title}
                         </h2>
                         {article.description && (
-                            <p className="text-muted-foreground/70 text-sm md:text-base line-clamp-3 font-medium leading-relaxed mb-6">
-                                {article.description}
-                            </p>
+                            <div
+                                className="text-muted-foreground/70 text-sm md:text-base line-clamp-3 font-medium leading-relaxed mb-6 prose dark:prose-invert prose-sm max-w-none"
+                                dangerouslySetInnerHTML={{ __html: article.description }}
+                            />
                         )}
 
                         <div className="mt-auto flex items-center justify-between">

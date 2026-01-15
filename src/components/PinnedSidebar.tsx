@@ -23,10 +23,11 @@ export default function PinnedSidebar({ articles }: PinnedSidebarProps) {
         <Sheet>
             <SheetTrigger asChild>
                 <Button
-                    className="fixed mr-5 right-0 top-1/4 -translate-y-1/2 bg-primary text-primary-foreground px-3 py-6 rounded-l-lg shadow-lg hover:bg-primary/90 transition-all z-40 flex items-center gap-2"
+                    className="fixed mr-0 sm:mr-5 right-0 top-45 -translate-y-1/2 bg-primary text-primary-foreground p-3 sm:px-3 sm:py-6 rounded-l-2xl sm:rounded-l-lg shadow-2xl hover:bg-primary/90 transition-all z-40 flex items-center gap-2 border-y border-l border-primary-foreground/20"
                 >
-                    <ChevronLeft className="w-5 h-5" />
-                    <span className="text-sm font-medium whitespace-nowrap">
+                    <Pin className="w-5 h-5 sm:hidden" />
+                    <ChevronLeft className="w-5 h-5 hidden sm:block" />
+                    <span className="text-sm font-bold whitespace-nowrap hidden sm:block uppercase tracking-widest">
                         Épinglés
                     </span>
                 </Button>

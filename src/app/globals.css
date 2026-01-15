@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -139,5 +140,15 @@ html {
 
   .hover-lift:hover {
     transform: translateY(-16px) scale(1.05);
+  }
+
+  /* YouTube Embeds Support */
+  .prose iframe {
+    width: 100% !important;
+    aspect-ratio: 16 / 9;
+    height: auto !important;
+    border-radius: 1rem;
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    margin: 2rem 0;
   }
 }

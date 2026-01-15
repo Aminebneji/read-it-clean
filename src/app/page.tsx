@@ -28,7 +28,6 @@ export default function Home() {
         setTotalPages(data.data.pagination.totalPages);
       }
     } catch (error) {
-      console.error("Failed to fetch articles", error);
     } finally {
       setLoading(false);
     }
@@ -43,7 +42,7 @@ export default function Home() {
         setPinnedArticles(data.data);
       }
     } catch (error) {
-      console.error("Failed to fetch pinned articles", error);
+      // Standard error logging is enough
     }
   }, []);
 
@@ -62,22 +61,18 @@ export default function Home() {
     };
 
     eventSource.addEventListener('pinChange', () => {
-      console.log('Pinned articles maj reçu via SSE');
       handleRefresh();
     });
 
     eventSource.addEventListener('update', () => {
-      console.log('Mise à jour d article reçu via SSE');
       handleRefresh();
     });
 
     eventSource.addEventListener('delete', () => {
-      console.log('Supression d article reçu via SSE');
       handleRefresh();
     });
 
     eventSource.onerror = (err) => {
-      console.error('SSE Connection Error:', err);
       eventSource.close();
     };
 
@@ -124,28 +119,15 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
       {/* Fixed  */}
-      <div className="fixed right-6 top-4 z-[60]">
+      <div className="absolute right-6 top-25 z-[40]">
         <ModeToggle />
       </div>
 
       {/* LOGO Section */}
-      {/* <div
+      <div
         className="w-full overflow-hidden flex items-center justify-start px-6 md:px-12 relative pointer-events-none"
       >
         <div className="flex items-center relative gap-4">
-          <div
-            className="absolute -left-14 top-1/3 -translate-y-1/2 z-0"
-          >
-            <Image
-              src="/RICLOGO.png"
-              alt="Read It Clean Logo"
-              width={540}
-              height={540}
-              className="rounded-full opacity-60 dark:opacity-40 drop-shadow-2xl saturate-[1.2] brightness-[0.9] dark:brightness-100 dark:saturate-100"
-              priority
-            />
-          </div>
-
           <div className="relative z-10 flex flex-col justify-center">
             <h1 className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 leading-tight drop-shadow-[0_2px_2px_rgba(255,255,255,0.8)] dark:drop-shadow-none">
               Read It Clean
@@ -155,7 +137,7 @@ export default function Home() {
             </p>
           </div>
         </div>
-      </div> */}
+      </div>
 
 
       {/* FilterBar */}

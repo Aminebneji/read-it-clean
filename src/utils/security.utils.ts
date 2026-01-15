@@ -6,22 +6,51 @@ import { logger } from "./logger.utils";
 export function sanitizeHtml(html: string): string {
     if (!html) return html;
 
-    // Strip <script> tags and their contents
-    let sanitized = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
+    let sanitized = html;
 
-    // Strip on attributes (onclick, onerror, etc.)
-    sanitized = sanitized.replace(/\son\w+="[^"]*"/gim, "");
-    sanitized = sanitized.replace(/\son\w+='[^']*'/gim, "");
+    // 1. Remove script tags and their content
+    sanitized = sanitized.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
 
-    // Strip javascript: URLs
-    sanitized = sanitized.replace(/href\s*=\s*"javascript:[^"]*"/gim, 'href="#"');
-    sanitized = sanitized.replace(/src\s*=\s*"javascript:[^"]*"/gim, 'src=""');
+    // 2. Remove "on" event handlers and other dangerous attributes
+    const dangerousAttributes = ['onclick', 'onerror', 'ononload', 'onmouseover', 'onfocus', 'onblur', 'style', 'formaction'];
+    const attrRegex = new RegExp(`\\s(${dangerousAttributes.join('|')})\\s*=\\s*["'][^"']*["']`, 'gim');
+    sanitized = sanitized.replace(attrRegex, "");
 
-    // Strip <iframe>, <object>, <embed>, <base> tags
-    sanitized = sanitized.replace(/<(iframe|object|embed|base)\b[^>]*>([\s\S]*?)<\/\1>/gim, "");
-    sanitized = sanitized.replace(/<(iframe|object|embed|base)\b[^>]*\/?>/gim, "");
+    // 3. Prevent javascript: protocol in href/src
+    sanitized = sanitized.replace(/(href|src|action|data)\s*=\s*["']\s*javascript:[^"']*["']/gim, '$1="#"');
+
+    // 4. Handle iframes/objects/embeds (only allow specific YouTube embeds)
+    sanitized = sanitized.replace(/<(iframe|object|embed|base)\b[^>]*>([\s\S]*?)<\/\1>/gim, (match, tag) => {
+        if (tag.toLowerCase() === 'iframe' && isSafeYoutubeUrl(match)) {
+            return match;
+        }
+        return "";
+    });
+
+    sanitized = sanitized.replace(/<(iframe|object|embed|base)\b[^>]*\/?>/gim, (match) => {
+        if (match.toLowerCase().startsWith('<iframe') && isSafeYoutubeUrl(match)) {
+            return match;
+        }
+        return "";
+    });
 
     return sanitized;
+}
+
+function isSafeYoutubeUrl(html: string): boolean {
+    const srcMatch = html.match(/src=["']([^"']+)["']/i);
+    if (!srcMatch) return false;
+    const url = srcMatch[1];
+    return url.startsWith('https://www.youtube.com/embed/') || url.startsWith('https://youtube.com/embed/');
+}
+
+export function isValidUrl(url: string): boolean {
+    try {
+        new URL(url);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 interface UsageData {

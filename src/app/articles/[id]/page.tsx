@@ -2,8 +2,7 @@ import { getArticleById, getSimilarArticles } from "@/services/article.service";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, ExternalLink } from "@/components/Icons";
-import { Button } from "@/components/ui/button";
+import { ExternalLink } from "@/components/Icons";
 import { Badge } from "@/components/ui/badge";
 import { ModeToggle } from "@/components/mode-toggle";
 
@@ -88,17 +87,17 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </section>
 
             {/* Article Content */}
-            <article className="max-w-4xl mx-auto px-4 sm:px-6 -mt-24 md:-mt-32 relative z-30">
+            <article className="max-w-4xl mx-auto px-4 sm:px-6 -mt-4 md:-mt-3 relative z-30">
                 <div className="bg-card/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-border/50 p-8 md:p-16 transition-all duration-500 hover:bg-card/90">
                     <div className="prose prose-lg dark:prose-invert max-w-none">
                         {article.generatedText ? (
                             <div
-                                className="whitespace-pre-wrap space-y-8 text-xl md:text-2xl font-medium antialiased text-foreground/90 leading-relaxed font-serif"
-                                dangerouslySetInnerHTML={{ __html: article.generatedText.replace(/\n\n/g, '<br /><br />') }}
+                                className="prose prose-xl md:prose-2xl dark:prose-invert max-w-none antialiased text-foreground/90 leading-relaxed font-serif prose-headings:font-sans prose-headings:font-black prose-img:rounded-2xl prose-img:shadow-xl prose-a:text-primary"
+                                dangerouslySetInnerHTML={{ __html: article.generatedText }}
                             />
                         ) : article.description ? (
                             <div
-                                className="whitespace-pre-wrap space-y-6 text-muted-foreground text-lg md:text-xl"
+                                className="prose prose-lg dark:prose-invert max-w-none text-muted-foreground"
                                 dangerouslySetInnerHTML={{ __html: article.description }}
                             />
                         ) : (

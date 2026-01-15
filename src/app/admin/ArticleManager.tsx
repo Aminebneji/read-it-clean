@@ -48,7 +48,7 @@ export default function ArticleManager() {
                 setSelectedIds(new Set());
             }
         } catch (error) {
-            console.error("Failed to fetch articles", error);
+            // Silently fail or handled by UI
         } finally {
             setLoading(false);
         }
@@ -70,7 +70,6 @@ export default function ArticleManager() {
                 alert("Erreur sync: " + data.error);
             }
         } catch (error) {
-            console.error("Sync failed", error);
             alert("Erreur réseau lors de la synchro");
         } finally {
             setLoading(false);
@@ -88,10 +87,8 @@ export default function ArticleManager() {
             if (data.success) {
                 setArticles(prev => prev.map(a => String(a.id) === String(articleId) ? { ...a, published: !currentStatus } : a));
             } else {
-                alert("Erreur: " + data.error);
             }
         } catch (error) {
-            console.error(error);
             alert("Erreur réseau");
         }
     };
@@ -133,7 +130,6 @@ export default function ArticleManager() {
                 alert("Erreur: " + data.error);
             }
         } catch (error) {
-            console.error(error);
             // Revert on network error
             setArticles(previousArticles);
             alert("Erreur réseau");
@@ -160,7 +156,6 @@ export default function ArticleManager() {
                 alert("Erreur lors de la suppression groupée: " + data.error);
             }
         } catch (error) {
-            console.error(error);
             alert("Erreur réseau");
         } finally {
             setBunchOfArticleDeletion(false);
