@@ -1,17 +1,17 @@
 // Structure d'un article 
 export interface article {
-    id: string;
+    id: number;
     title: string;
     link: string;
-    description: string;
-    image?: string;
-    category?: string;
+    description: string | null;
+    image?: string | null;
+    category: string;
     published: boolean;
-    pubDate?: string;
-    createdAt: string;
-    updatedAt: string;
-    generatedText?: string;
+    pubDate: string | Date;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    generatedText?: string | null;
     isGenerated: boolean;
-    generatedAt?: string;
+    generatedAt?: string | Date | null;
     pinned: boolean;
 }

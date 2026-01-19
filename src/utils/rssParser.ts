@@ -3,6 +3,35 @@ import { RSSItem } from "@/types/rss.types";
 import { AppError, ERROR_CODES } from "./error.utils";
 import { ERROR_MESSAGES } from "@/config/constants";
 
+interface RssMediaContent {
+    '@_url'?: string;
+}
+
+interface RssEnclosure {
+    '@_url'?: string;
+    '@_type'?: string;
+}
+
+interface RssImage {
+    url?: string;
+}
+
+interface RssThumbnail {
+    '@_url'?: string;
+}
+
+interface RawRssItem {
+    title?: string;
+    link?: string;
+    pubDate?: string;
+    description?: string;
+    'media:content'?: RssMediaContent | RssMediaContent[];
+    enclosure?: RssEnclosure | RssEnclosure[];
+    image?: string | RssImage;
+    'media:thumbnail'?: RssThumbnail | RssThumbnail[];
+    [key: string]: unknown; // Permettre d'autres champs RSS sans erreur
+}
+
 export function parseRssFeedXml(xmlContent: string): RSSItem[] {
     if (!xmlContent || xmlContent.trim() === '') {
         throw new AppError(
@@ -19,23 +48,22 @@ export function parseRssFeedXml(xmlContent: string): RSSItem[] {
 
         if (!Array.isArray(rssItems) && rssItems) {
             // Si un seul item, le convertir en tableau
-            return [mapRssItem(rssItems)];
+            return [mapRssItem(rssItems as RawRssItem)];
         }
 
-        return rssItems.map((item: Record<string, unknown>) => mapRssItem(item));
+        return (rssItems as RawRssItem[]).map((item: RawRssItem) => mapRssItem(item));
     } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
         throw new AppError(
-            `${ERROR_MESSAGES.RSS_PARSE_FAILED}: ${(error as Error).message}`,
+            `${ERROR_MESSAGES.RSS_PARSE_FAILED}: ${errorMessage}`,
             ERROR_CODES.RSS_PARSE_FAILED,
-            { originalError: (error as Error).message }
+            { originalError: errorMessage }
         );
     }
 }
 
-
-
 // Mappe un item RSS brut vers la structure RSSItem
-function mapRssItem(item: Record<string, unknown>): RSSItem {
+function mapRssItem(item: RawRssItem): RSSItem {
     return {
         title: (item.title as string) || '',
         link: (item.link as string) || '',
@@ -46,14 +74,14 @@ function mapRssItem(item: Record<string, unknown>): RSSItem {
 }
 
 // Extrait l'URL de l'image d'un item RSS
-function extractImageUrl(item: Record<string, unknown>): string | undefined {
+function extractImageUrl(item: RawRssItem): string | undefined {
     const extractors = [
         // media:content (format Media RSS)
         () => {
             const mediaContent = Array.isArray(item['media:content'])
                 ? item['media:content'][0]
                 : item['media:content'];
-            return mediaContent?.['@_url'];
+            return (mediaContent as RssMediaContent | undefined)?.['@_url'];
         },
 
         // enclosure (format standard RSS)
@@ -61,13 +89,15 @@ function extractImageUrl(item: Record<string, unknown>): string | undefined {
             const enclosure = Array.isArray(item.enclosure)
                 ? item.enclosure[0]
                 : item.enclosure;
-            return enclosure?.['@_type']?.startsWith('image/') ? enclosure?.['@_url'] : undefined;
+            return (enclosure as RssEnclosure | undefined)?.['@_type']?.startsWith('image/')
+                ? (enclosure as RssEnclosure | undefined)?.['@_url']
+                : undefined;
         },
 
         // champ image direct
         () => {
             if (typeof item.image === 'string') return item.image;
-            return (item.image as { url?: string })?.url;
+            return (item.image as RssImage | undefined)?.url;
         },
 
         // media:thumbnail
@@ -75,7 +105,7 @@ function extractImageUrl(item: Record<string, unknown>): string | undefined {
             const thumbnail = Array.isArray(item['media:thumbnail'])
                 ? item['media:thumbnail'][0]
                 : item['media:thumbnail'];
-            return thumbnail?.['@_url'];
+            return (thumbnail as RssThumbnail | undefined)?.['@_url'];
         }
     ];
 

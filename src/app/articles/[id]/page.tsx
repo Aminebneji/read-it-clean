@@ -156,7 +156,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                                         {item.title}
                                     </h3>
                                     <div className="mt-auto pt-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Lire l'article →</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Lire l&apos;article →</span>
                                     </div>
                                 </div>
                             </Link>

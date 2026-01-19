@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
@@ -14,7 +14,7 @@ interface RichTextEditorProps {
     mode?: 'full' | 'simple';
 }
 
-const MenuBar = ({ editor, mode }: { editor: any; mode: 'full' | 'simple' }) => {
+const MenuBar = ({ editor, mode }: { editor: Editor | null; mode: 'full' | 'simple' }) => {
     if (!editor) {
         return null;
     }
@@ -191,7 +191,7 @@ export default function RichTextEditor({ content, onChange, mode = 'full' }: Ric
     if (!mounted) {
         return (
             <div className={`w-full ${mode === 'simple' ? 'h-[200px]' : 'h-[450px]'} border border-border rounded-lg bg-card animate-pulse flex items-center justify-center text-muted-foreground`}>
-                Chargement de l'éditeur...
+                Chargement de l&apos;éditeur...
             </div>
         );
     }

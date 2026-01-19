@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { articleEventEmitter, ARTICLE_EVENTS } from '@/utils/events.utils';
+import { Article } from '@prisma/client';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,15 +9,15 @@ export async function GET(request: NextRequest) {
         start(controller) {
             const encoder = new TextEncoder();
 
-            const sendEvent = (event: string, data: any) => {
+            const sendEvent = (event: string, data: unknown) => {
                 const message = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
                 controller.enqueue(encoder.encode(message));
             };
 
             // Ecoute des différents events sur les articles
-            const onUpdate = (article: any) => sendEvent('update', article);
-            const onDelete = (id: any) => sendEvent('delete', id);
-            const onPinChange = (article: any) => sendEvent('pinChange', article);
+            const onUpdate = (article: Article) => sendEvent('update', article);
+            const onDelete = (id: number | number[]) => sendEvent('delete', id);
+            const onPinChange = (article: Article) => sendEvent('pinChange', article);
 
             articleEventEmitter.on(ARTICLE_EVENTS.UPDATED, onUpdate);
             articleEventEmitter.on(ARTICLE_EVENTS.DELETED, onDelete);

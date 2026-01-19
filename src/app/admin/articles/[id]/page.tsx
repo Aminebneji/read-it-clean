@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
+import Image from "next/image";
 import { article } from "@/types/article.types";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -204,10 +205,11 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                 {/* Image Section */}
                 {article.image && (
                     <div className="relative h-[250px] md:h-[400px] w-full rounded-2xl overflow-hidden shadow-xl group border border-border">
-                        <img
+                        <Image
                             src={article.image}
                             alt={article.title}
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                         />
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-6">
                             <div className="flex items-center gap-3">
@@ -336,7 +338,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                                     dangerouslySetInnerHTML={{ __html: article.generatedText }}
                                                 />
                                             ) : (
-                                                <p className="italic">Le contenu n'a pas encore été généré.</p>
+                                                <p className="italic">Le contenu n&apos;a pas encore été généré.</p>
                                             )}
                                         </div>
                                     )}

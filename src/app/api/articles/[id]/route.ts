@@ -1,4 +1,5 @@
 import { createErrorResponse, createSuccessResponse } from "@/utils/api.utils";
+import { article } from "@/types/article.types";
 import { HTTP_STATUS } from "@/config/constants";
 import { getArticleById, deleteArticle, updateArticle, getArticles } from "@/services/article.service";
 import { getServerSession } from "next-auth";
@@ -47,7 +48,7 @@ export async function PATCH(
             }
 
             const { articles: currentPinned } = await getArticles({ publishedOnly: false });
-            const pinnedCount = currentPinned.filter((a: any) => a.pinned).length;
+            const pinnedCount = currentPinned.filter((article: article) => article.pinned).length;
             if (pinnedCount >= 4) {
                 return createErrorResponse(new Error("Nombre maximum d'articles épinglés atteint (4)"), HTTP_STATUS.BAD_REQUEST);
             }

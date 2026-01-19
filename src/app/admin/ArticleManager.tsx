@@ -25,6 +25,7 @@ export default function ArticleManager() {
     const [page, setPage] = useState(1);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [bunchOfArticleDeletion, setBunchOfArticleDeletion] = useState(false);
+    const [pinnedFirst, setPinnedFirst] = useState(false);
 
     const fetchArticles = useCallback(async () => {
         setLoading(true);
@@ -33,6 +34,7 @@ export default function ArticleManager() {
                 page: page.toString(),
                 limit: "20",
                 publishedOnly: "false",
+                pinnedFirst: pinnedFirst.toString(),
             });
 
             const res = await fetch(`/api/articles?${queryParams}`);
@@ -48,10 +50,11 @@ export default function ArticleManager() {
                 setSelectedIds(new Set());
             }
         } catch (error) {
+            console.error("Error fetching articles:", error);
         } finally {
             setLoading(false);
         }
-    }, [page, onlyPending]);
+    }, [page, onlyPending, pinnedFirst]);
 
     useEffect(() => {
         fetchArticles();
@@ -69,6 +72,7 @@ export default function ArticleManager() {
                 alert("Erreur sync: " + data.error);
             }
         } catch (error) {
+            console.error("Error syncing articles:", error);
             alert("Erreur réseau lors de la synchro");
         } finally {
             setLoading(false);
@@ -88,6 +92,7 @@ export default function ArticleManager() {
             } else {
             }
         } catch (error) {
+            console.error("Error toggling publish status:", error);
             alert("Erreur réseau");
         }
     };
@@ -95,7 +100,7 @@ export default function ArticleManager() {
     const handleTogglePin = async (articleId: string, currentStatus: boolean) => {
         // Validation check avant le pinning
         if (!currentStatus) {
-            const article = articles.find(a => a.id === articleId);
+            const article = articles.find(article => article.id.toString() === articleId);
 
             // Check si c'est généré
             if (article && !article.isGenerated) {
@@ -131,6 +136,7 @@ export default function ArticleManager() {
         } catch (error) {
             // Revert on network error
             setArticles(previousArticles);
+            console.error("Error toggling pin status:", error);
             alert("Erreur réseau");
         }
     };
@@ -155,6 +161,7 @@ export default function ArticleManager() {
                 alert("Erreur lors de la suppression groupée: " + data.error);
             }
         } catch (error) {
+            console.error("Error deleting articles:", error);
             alert("Erreur réseau");
         } finally {
             setBunchOfArticleDeletion(false);
@@ -198,6 +205,19 @@ export default function ArticleManager() {
                         />
                         <label htmlFor="pending-only" className="text-sm font-medium leading-none cursor-pointer">
                             Non générés
+                        </label>
+                    </div>
+                    <div className="flex items-center space-x-2 mr-2">
+                        <Switch
+                            id="pinned-first"
+                            checked={pinnedFirst}
+                            onCheckedChange={(checked) => {
+                                setPinnedFirst(checked);
+                                setPage(1);
+                            }}
+                        />
+                        <label htmlFor="pinned-first" className="text-sm font-medium leading-none cursor-pointer">
+                            Épinglés d'abord
                         </label>
                     </div>
                     <Button

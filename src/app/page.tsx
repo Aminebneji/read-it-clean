@@ -5,6 +5,10 @@ import FilterBar from "@/components/FilterBar";
 import ArticleGrid from "@/components/ArticleGrid";
 import PinnedSidebar from "@/components/PinnedSidebar";
 import { ModeToggle } from "@/components/mode-toggle";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { RefreshCcw } from "@/components/Icons";
+import { formatErrorMessage } from "@/utils/error.utils";
 
 export default function Home() {
   const [articles, setArticles] = useState<article[]>([]);
@@ -15,19 +19,29 @@ export default function Home() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchArticles = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = buildQueryParams(page, category, sort, search);
       const res = await fetch(`/api/articles?${params}`);
+
+      if (!res.ok) {
+        throw new Error("Impossible de charger les articles. Veuillez réessayer.");
+      }
+
       const data = await res.json();
 
       if (data.success) {
         setArticles(data.data.articles);
         setTotalPages(data.data.pagination.totalPages);
+      } else {
+        throw new Error(data.message || "Une erreur est survenue lors du chargement.");
       }
-    } catch (error) {
+    } catch (err) {
+      setError(formatErrorMessage(err, "Articles"));
     } finally {
       setLoading(false);
     }
@@ -36,13 +50,14 @@ export default function Home() {
   const fetchPinnedArticles = useCallback(async () => {
     try {
       const res = await fetch("/api/articles/pinned");
+      if (!res.ok) throw new Error("Erreur de récupération des articles épinglés");
       const data = await res.json();
 
       if (data.success) {
         setPinnedArticles(data.data);
       }
-    } catch (error) {
-      // Standard error logging is enough
+    } catch (err) {
+      console.error(formatErrorMessage(err, "PinnedArticles"));
     }
   }, []);
 
@@ -72,14 +87,14 @@ export default function Home() {
       handleRefresh();
     });
 
-    eventSource.onerror = (err) => {
+    eventSource.onerror = () => {
       eventSource.close();
     };
 
     return () => {
       eventSource.close();
     };
-  }, [fetchPinnedArticles]);
+  }, [fetchPinnedArticles, fetchArticles]);
 
   const buildQueryParams = (
     page: number,
@@ -156,6 +171,30 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="pb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex flex-col gap-1">
+                  <AlertTitle>Erreur</AlertTitle>
+                  <AlertDescription>
+                    {error}
+                  </AlertDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fetchArticles()}
+                  className="ml-4"
+                >
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  Réessayer
+                </Button>
+              </div>
+            </Alert>
+          )}
+        </div>
+
         <ArticleGrid articles={articles} loading={loading} />
 
         {/* Pagination */}

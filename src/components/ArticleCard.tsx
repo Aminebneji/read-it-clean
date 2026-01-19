@@ -79,7 +79,7 @@ export default function ArticleCard({ article, index = 0 }: ArticleCardProps) {
 
                         <div className="mt-auto flex items-center justify-between">
                             <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-primary/60 group-hover:text-primary transition-all">
-                                Lire l'article complet →
+                                Lire l&apos;article complet →
                             </span>
                         </div>
                     </CardContent>

@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
         const category = searchParams.get('category') || undefined;
         const search = searchParams.get('search') || undefined;
         const sort = searchParams.get('sort') || 'desc';
-        const publishedOnly = searchParams.get('publishedOnly') !== 'false'; // default true pour le public
+        const publishedOnly = searchParams.get('publishedOnly') !== 'false';
+        const pinnedFirst = searchParams.get('pinnedFirst') === 'true';
 
         const skip = (page - 1) * limit;
 
@@ -23,6 +24,7 @@ export async function GET(request: NextRequest) {
             search,
             sort: sort as 'asc' | 'desc',
             publishedOnly,
+            pinnedFirst,
         });
 
         return createSuccessResponse(

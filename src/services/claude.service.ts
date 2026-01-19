@@ -68,7 +68,7 @@ export async function generateTextForArticle(
 
         if (shouldSkipGeneration(article, options?.force)) {
             logger.info(`Article already has generated text: ${article.title}`);
-            return article as unknown as article;
+            return article as article;
         }
 
         logger.info(`${options?.force ? 'Re-generating' : 'Generating'} text for article: ${article.title}`);
@@ -120,11 +120,12 @@ export async function generateTextForArticle(
 
         logger.success(`Generated and saved all fields for article: ${updatedArticle.title}`);
 
-        return updatedArticle as unknown as article;
+        return updatedArticle as article;
     } catch (error) {
         logger.error(`Claude API error for article ${articleId}:`, error);
+        const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
         throw new AppError(
-            `${ERROR_MESSAGES.CLAUDE_API_FAILED}: ${(error as Error).message}`,
+            `${ERROR_MESSAGES.CLAUDE_API_FAILED}: ${errorMessage}`,
             'CLAUDE_API_ERROR'
         );
     }

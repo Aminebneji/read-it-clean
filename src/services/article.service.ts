@@ -99,9 +99,17 @@ export async function getArticles(options?: {
     search?: string;
     sort?: 'asc' | 'desc';
     publishedOnly?: boolean;
+    pinnedFirst?: boolean;
 }) {
     const where = buildArticleWhereClause(options);
-    const orderBy = options?.sort === 'asc' ? { pubDate: 'asc' as const } : { pubDate: 'desc' as const };
+
+    const orderBy: Prisma.ArticleOrderByWithRelationInput[] = [];
+
+    if (options?.pinnedFirst) {
+        orderBy.push({ pinned: 'desc' });
+    }
+
+    orderBy.push(options?.sort === 'asc' ? { pubDate: 'asc' } : { pubDate: 'desc' });
 
     const articles = await prisma.article.findMany({
         where,
