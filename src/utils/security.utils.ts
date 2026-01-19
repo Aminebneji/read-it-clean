@@ -2,7 +2,7 @@ import DOMPurify from "isomorphic-dompurify";
 import { CLAUDE_CONFIG } from "@/config/app.config";
 import { logger } from "./logger.utils";
 
-// HTML sanitization using DOMPurify for robust XSS protection
+// HTML sanitization avec DOMPurify pour une protection contre les attaques XSS
 export function sanitizeHtml(html: string): string {
     if (!html) return html;
 
