@@ -135,26 +135,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      {/* Fixed  */}
-      <div className="absolute right-6 top-25 z-[40]">
-        <ModeToggle />
-      </div>
+      {/* Header Container */}
+      <div className="w-full px-6 md:px-12 py-6 flex items-center justify-between">
+        {/* LOGO Section */}
+        <div className="flex items-center gap-4">
+          <Image
+            src="/RICLOGO.png"
+            alt="Read It Clean Logo"
+            width={180}
+            height={60}
+            className="h-10 md:h-12 w-auto object-contain"
+            priority
+          />
+        </div>
 
-      {/* LOGO Section */}
-      <div
-        className="w-full overflow-hidden flex items-center justify-start px-6 md:px-12 relative pointer-events-none"
-      >
-        <div className="flex items-center relative gap-4">
-          <div className="relative z-10 flex flex-col justify-center">
-            <Image
-              src="/RICLOGO.png"
-              alt="Read It Clean Logo"
-              width={180}
-              height={60}
-              className="h-12 w-auto object-contain"
-              priority
-            />
-          </div>
+        {/* Action Section (Dark Mode) */}
+        <div className="flex items-center gap-4">
+          <ModeToggle />
         </div>
       </div>
 
