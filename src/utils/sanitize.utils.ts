@@ -23,6 +23,6 @@ export function sanitizeHtml(html: string): string {
     return sanitize(html, {
         allowedTags: ALLOWED_TAGS,
         allowedAttributes: ALLOWED_ATTR,
-        allowedIframeHostnames: ['www.youtube.com', 'player.vimeo.com', 'www.dailymotion.com']
+        allowedIframeHostnames: ['www.youtube.com', 'youtube.com', 'player.vimeo.com', 'www.dailymotion.com']
     });
 }

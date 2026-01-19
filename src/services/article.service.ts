@@ -77,17 +77,21 @@ export async function saveArticlesBatch(rssItems: RSSItem[]): Promise<{
 function buildArticleWhereClause(options?: {
     category?: string;
     search?: string;
+    published?: boolean;
+    isGenerated?: boolean;
     publishedOnly?: boolean;
 }): Prisma.ArticleWhereInput {
     return {
-        ...(options?.category && { category: mapCategory(options.category) }),
+        ...(options?.category && options.category !== 'All' && { category: mapCategory(options.category) }),
         ...(options?.search && {
             OR: [
                 { title: { contains: options.search, mode: 'insensitive' } },
                 { description: { contains: options.search, mode: 'insensitive' } },
             ]
         }),
-        ...(options?.publishedOnly !== false && { published: true }),
+        ...(options?.published !== undefined && { published: options.published }),
+        ...(options?.isGenerated !== undefined && { isGenerated: options.isGenerated }),
+        ...(options?.publishedOnly === true && { published: true }),
     };
 }
 
@@ -99,6 +103,8 @@ export async function getArticles(options?: {
     search?: string;
     sort?: 'asc' | 'desc';
     publishedOnly?: boolean;
+    published?: boolean;
+    isGenerated?: boolean;
     pinnedFirst?: boolean;
 }) {
     const where = buildArticleWhereClause(options);

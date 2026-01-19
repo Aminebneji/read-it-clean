@@ -8,6 +8,13 @@ import { Trash2, Loader as Loader2 } from "@/components/Icons";
 import WowheadGenerationModal from "@/components/admin/WowheadGenerationModal";
 import AdminArticleTable from "@/components/admin/AdminArticleTable";
 import PaginationControls from "@/components/ui/pagination-controls";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface ArticlePagination {
     page: number;
@@ -19,12 +26,16 @@ interface ArticlePagination {
 export default function ArticleManager() {
     const [articles, setArticles] = useState<article[]>([]);
     const [loading, setLoading] = useState(true);
-    const [onlyPending, setOnlyPending] = useState(false);
     const [pagination, setPagination] = useState<ArticlePagination | null>(null);
     const [page, setPage] = useState(1);
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
     const [bunchOfArticleDeletion, setBunchOfArticleDeletion] = useState(false);
     const [pinnedFirst, setPinnedFirst] = useState(false);
+
+    // Filters
+    const [categoryFilter, setCategoryFilter] = useState("All");
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [generationFilter, setGenerationFilter] = useState("all");
 
     const fetchArticles = useCallback(async () => {
         setLoading(true);
@@ -34,17 +45,16 @@ export default function ArticleManager() {
                 limit: "20",
                 publishedOnly: "false",
                 pinnedFirst: pinnedFirst.toString(),
+                category: categoryFilter !== "All" ? categoryFilter : "",
+                published: statusFilter === "published" ? "true" : (statusFilter === "unpublished" ? "false" : ""),
+                isGenerated: generationFilter === "generated" ? "true" : (generationFilter === "not-generated" ? "false" : ""),
             });
 
             const res = await fetch(`/api/articles?${queryParams}`);
             const data = await res.json();
 
             if (data.success) {
-                let fetchedArticles = data.data.articles;
-                if (onlyPending) {
-                    fetchedArticles = fetchedArticles.filter((article: article) => !article.isGenerated);
-                }
-                setArticles(fetchedArticles);
+                setArticles(data.data.articles);
                 setPagination(data.data.pagination);
                 setSelectedIds(new Set());
             }
@@ -53,7 +63,7 @@ export default function ArticleManager() {
         } finally {
             setLoading(false);
         }
-    }, [page, onlyPending, pinnedFirst]);
+    }, [page, categoryFilter, statusFilter, generationFilter, pinnedFirst]);
 
     useEffect(() => {
         fetchArticles();
@@ -210,20 +220,43 @@ export default function ArticleManager() {
                     <h2 className="text-2xl font-bold text-foreground">Gestion des Articles</h2>
                     <p className="text-sm text-muted-foreground">Gérez et publiez vos articles synchronisés</p>
                 </div>
-                <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center space-x-2 mr-2">
-                        <Switch
-                            id="pending-only"
-                            checked={onlyPending}
-                            onCheckedChange={(checked) => {
-                                setOnlyPending(checked);
-                                setPage(1);
-                            }}
-                        />
-                        <label htmlFor="pending-only" className="text-sm font-medium leading-none cursor-pointer">
-                            Non générés
-                        </label>
-                    </div>
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* Category Filter */}
+                    <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(1); }}>
+                        <SelectTrigger className="w-[110px] h-9">
+                            <SelectValue placeholder="Catégorie" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="All">Toutes</SelectItem>
+                            <SelectItem value="Classic">Classic</SelectItem>
+                            <SelectItem value="Retail">Retail</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    {/* Published Status Filter */}
+                    <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+                        <SelectTrigger className="w-[125px] h-9">
+                            <SelectValue placeholder="Statut" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Tous (Statut)</SelectItem>
+                            <SelectItem value="published">Publiés</SelectItem>
+                            <SelectItem value="unpublished">Non publiés</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    {/* Generation Status Filter */}
+                    <Select value={generationFilter} onValueChange={(v) => { setGenerationFilter(v); setPage(1); }}>
+                        <SelectTrigger className="w-[130px] h-9">
+                            <SelectValue placeholder="Génération" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Toutes (IA)</SelectItem>
+                            <SelectItem value="generated">Générés</SelectItem>
+                            <SelectItem value="not-generated">En attente</SelectItem>
+                        </SelectContent>
+                    </Select>
+
                     <div className="flex items-center space-x-2 mr-2">
                         <Switch
                             id="pinned-first"
@@ -234,13 +267,14 @@ export default function ArticleManager() {
                             }}
                         />
                         <label htmlFor="pinned-first" className="text-sm font-medium leading-none cursor-pointer">
-                            Épinglés d&apos;abord
+                            Épinglés
                         </label>
                     </div>
+
                     <Button
                         onClick={handleSync}
                         disabled={loading}
-                        className="gap-2"
+                        className="gap-2 h-9"
                         variant="outline"
                     >
                         Sync RSS

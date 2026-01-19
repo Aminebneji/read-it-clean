@@ -5,7 +5,8 @@ import { useEditor, EditorContent, Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
-import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Heading3, ImageLink, Youtube as YoutubeIcon, Undo, Redo } from '@/components/Icons';
+import Link from '@tiptap/extension-link';
+import { Bold, Italic, List, ListOrdered, Heading1, Heading2, Heading3, ImageLink, Youtube as YoutubeIcon, Undo, Redo, Link as LinkIcon } from '@/components/Icons';
 import { Button } from '@/components/ui/button';
 
 interface RichTextEditorProps {
@@ -33,6 +34,24 @@ const MenuBar = ({ editor, mode }: { editor: Editor | null; mode: 'full' | 'simp
                 src: url,
             });
         }
+    };
+    const setLink = () => {
+        const previousUrl = editor.getAttributes('link').href;
+        const url = window.prompt('URL du lien', previousUrl);
+
+        // cancelled
+        if (url === null) {
+            return;
+        }
+
+        // empty
+        if (url === '') {
+            editor.chain().focus().extendMarkRange('link').unsetLink().run();
+            return;
+        }
+
+        // update link
+        editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     };
 
     return (
@@ -124,6 +143,15 @@ const MenuBar = ({ editor, mode }: { editor: Editor | null; mode: 'full' | 'simp
                     <Button
                         variant="ghost"
                         size="sm"
+                        onClick={setLink}
+                        className={editor.isActive('link') ? 'bg-muted' : ''}
+                        title="Ajouter un lien"
+                    >
+                        <LinkIcon className="w-4 h-4" />
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={addYoutubeVideo}
                         title="Insérer une vidéo YouTube"
                     >
@@ -172,6 +200,12 @@ export default function RichTextEditor({ content, onChange, mode = 'full' }: Ric
                     inline: false,
                     HTMLAttributes: {
                         class: 'rounded-xl shadow-lg border border-border w-full aspect-video',
+                    },
+                }),
+                Link.configure({
+                    openOnClick: false,
+                    HTMLAttributes: {
+                        class: 'text-primary underline font-medium cursor-pointer',
                     },
                 }),
             ] : []),
