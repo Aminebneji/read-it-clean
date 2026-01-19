@@ -65,23 +65,25 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                 <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-background via-background/60 to-transparent z-10" />
                 <div className="absolute inset-0 bg-black/20 z-0" />
 
-                <div className="absolute inset-0 z-20 flex flex-col justify-end pb-32 md:pb-48 px-4">
-                    <div className="max-w-4xl mx-auto w-full text-center md:text-left">
-                        <div className="flex items-center justify-center md:justify-start gap-4 mb-6">
-                            <Badge
-                                variant="outline"
-                                className={`text-[10px] md:text-xs uppercase tracking-[0.2em] font-black border-none px-4 py-1.5 ${article.category === 'Classic'
-                                    ? 'text-amber-500 bg-amber-500/20'
-                                    : 'text-blue-500 bg-blue-500/20'
-                                    }`}
-                            >
-                                {article.category}
-                            </Badge>
-                            <span className="text-foreground/60 text-xs font-bold uppercase tracking-widest">{formattedDate}</span>
+                <div className="absolute inset-0 z-20 flex flex-col justify-end pb-24 md:pb-32 px-4">
+                    <div className="max-w-4xl mx-auto w-full">
+                        <div className="inline-block text-left p-6 md:p-12 rounded-[2.5rem] bg-black/40 backdrop-blur-md border border-white/10 shadow-2xl">
+                            <div className="flex items-center gap-4 mb-6">
+                                <Badge
+                                    variant="outline"
+                                    className={`text-[10px] md:text-xs uppercase tracking-[0.2em] font-black border-none px-4 py-1.5 ${article.category === 'Classic'
+                                        ? 'text-amber-500 bg-amber-500/20'
+                                        : 'text-blue-500 bg-blue-500/20'
+                                        }`}
+                                >
+                                    {article.category}
+                                </Badge>
+                                <span className="text-white/80 text-xs font-bold uppercase tracking-widest">{formattedDate}</span>
+                            </div>
+                            <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] tracking-tight drop-shadow-2xl">
+                                {article.title}
+                            </h1>
                         </div>
-                        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black text-foreground leading-[1.1] tracking-tight drop-shadow-2xl">
-                            {article.title}
-                        </h1>
                     </div>
                 </div>
             </section>

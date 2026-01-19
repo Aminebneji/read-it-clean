@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { article } from "@/types/article.types";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RefreshCcw as RefreshCw, ExternalLink, Cog as Settings, Star, Trash2, Loader as Loader2 } from "@/components/Icons";
 import Link from "next/link";
+import WowheadGenerationModal from "@/components/admin/WowheadGenerationModal";
+import AdminArticleTable from "@/components/admin/AdminArticleTable";
+import PaginationControls from "@/components/ui/pagination-controls";
 
 interface ArticlePagination {
     page: number;
@@ -129,14 +130,32 @@ export default function ArticleManager() {
             const data = await res.json();
 
             if (!data.success) {
-                // Revert if server returns error
                 setArticles(previousArticles);
                 alert("Erreur: " + data.error);
             }
         } catch (error) {
-            // Revert on network error
             setArticles(previousArticles);
             console.error("Error toggling pin status:", error);
+            alert("Erreur réseau");
+        }
+    };
+
+    const handleDelete = async (articleId: string) => {
+        if (!confirm("Êtes-vous sûr de vouloir supprimer cet article ?")) return;
+
+        try {
+            const res = await fetch(`/api/articles/${articleId}`, {
+                method: "DELETE",
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert("Article supprimé avec succès");
+                fetchArticles();
+            } else {
+                alert("Erreur lors de la suppression: " + data.error);
+            }
+        } catch (error) {
+            console.error("Error deleting article:", error);
             alert("Erreur réseau");
         }
     };
@@ -229,6 +248,8 @@ export default function ArticleManager() {
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         Sync RSS
                     </Button>
+
+                    <WowheadGenerationModal onArticleGenerated={fetchArticles} />
                 </div>
             </div>
 
@@ -253,144 +274,26 @@ export default function ArticleManager() {
                 </div>
             )}
 
-            <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-                <Table>
-                    <TableHeader>
-                        <TableRow className="hover:bg-transparent">
-                            <TableHead className="w-[50px]">
-                                <Checkbox
-                                    checked={articles.length > 0 && selectedIds.size === articles.length}
-                                    onCheckedChange={toggleSelectAll}
-                                />
-                            </TableHead>
-                            <TableHead className="w-[40px]"></TableHead>
-                            <TableHead className="min-w-[300px]">Titre</TableHead>
-                            <TableHead>Catégorie</TableHead>
-                            <TableHead>Date</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Publié</TableHead>
-                            <TableHead className="text-right">Action</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {loading && articles.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={8} className="text-center py-20">
-                                    <div className="flex flex-col items-center gap-2">
-                                        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                                        <p className="text-muted-foreground">Chargement des articles...</p>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
-                        ) : articles.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={8} className="text-center py-20 text-muted-foreground italic">
-                                    Aucun article trouvé.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            articles.map((article) => (
-                                <TableRow key={article.id} className={selectedIds.has(article.id.toString()) ? "bg-primary/5" : ""}>
-                                    <TableCell>
-                                        <Checkbox
-                                            checked={selectedIds.has(article.id.toString())}
-                                            onCheckedChange={() => toggleSelectArticle(article.id.toString())}
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className={`h-8 w-8 transition-colors duration-200 ${article.pinned ? "text-yellow-500 hover:text-yellow-600" : "text-muted-foreground hover:text-foreground"}`}
-                                            onClick={() => handleTogglePin(article.id.toString(), article.pinned)}
-                                        >
-                                            <Star className={`h-4 w-4 transition-transform duration-200 ${article.pinned ? "fill-current scale-110" : "scale-100"}`} />
-                                        </Button>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="space-y-1">
-                                            <Link
-                                                href={`/admin/articles/${article.id}`}
-                                                className="font-medium hover:text-primary transition-colors line-clamp-1"
-                                            >
-                                                {article.title}
-                                            </Link>
-                                            <a
-                                                href={article.link}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="text-[10px] text-muted-foreground hover:text-primary flex items-center gap-1 uppercase tracking-tight"
-                                            >
-                                                <ExternalLink className="w-3 h-3" />
-                                                Source Originale
-                                            </a>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="secondary" className="font-normal">{article.category}</Badge>
-                                    </TableCell>
-                                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                                        {new Date(article.pubDate || article.createdAt).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={article.isGenerated ? "success" : "warning"} className="text-[10px] py-0 h-5">
-                                            {article.isGenerated ? 'Généré' : 'À faire'}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Switch
-                                            checked={article.published}
-                                            onCheckedChange={() => handleTogglePublish(article.id.toString(), article.published)}
-                                            className="scale-75"
-                                        />
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <Button variant="ghost" size="sm" asChild className="h-8">
-                                            <Link href={`/admin/articles/${article.id}`}>
-                                                <Settings className="w-3.5 h-3.5 mr-1.5" />
-                                                Gérer
-                                            </Link>
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
+            <AdminArticleTable
+                articles={articles}
+                loading={loading}
+                selectedIds={selectedIds}
+                onToggleSelect={toggleSelectArticle}
+                onToggleSelectAll={toggleSelectAll}
+                onTogglePin={handleTogglePin}
+                onTogglePublish={handleTogglePublish}
+                onDelete={handleDelete}
+            />
 
-                {pagination && pagination.totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-muted/30">
-                        <div className="text-xs text-muted-foreground">
-                            Article {((page - 1) * 20) + 1} à {Math.min(page * 20, pagination.total)} sur {pagination.total}
-                        </div>
-                        <div className="flex gap-2">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                    setPage(p => Math.max(1, p - 1));
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                disabled={page === 1}
-                                className="h-8"
-                            >
-                                Précédent
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                    setPage(p => Math.min(pagination.totalPages, p + 1));
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                disabled={page === pagination.totalPages}
-                                className="h-8"
-                            >
-                                Suivant
-                            </Button>
-                        </div>
-                    </div>
-                )}
+            <div className="mt-8">
+                <PaginationControls
+                    currentPage={page}
+                    totalPages={pagination?.totalPages || 1}
+                    onPageChange={(p) => {
+                        setPage(p);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                />
             </div>
         </div>
     );

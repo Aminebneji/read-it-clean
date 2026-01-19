@@ -7,11 +7,14 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, Save, Trash2, Wand as Wand2, Undo as Undo2, Pen as Edit3, Globe, Calendar, CheckCircle as CheckCircle2, Clock, RefreshCcw as RefreshCw, ExternalLink } from "@/components/Icons";
+import { Undo as Undo2, Pen as Edit3, Calendar, Clock, RefreshCcw as RefreshCw } from "@/components/Icons";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import RichTextEditor from "@/components/RichTextEditor";
+import ArticleDetailHeader from "@/components/admin/article-detail/ArticleDetailHeader";
+import ArticleStatusCard from "@/components/admin/article-detail/ArticleStatusCard";
+import ArticleSourceCard from "@/components/admin/article-detail/ArticleSourceCard";
 
 export default function ArticleDetailPage(props: { params: Promise<{ id: string }> }) {
     const params = use(props.params);
@@ -168,38 +171,12 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
 
     return (
         <div className="min-h-screen bg-background text-foreground pb-20 transition-colors duration-300">
-            <header className="border-b border-border bg-card sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="sm" asChild>
-                            <Link href="/admin" className="flex items-center gap-2">
-                                <ChevronLeft className="w-4 h-4" />
-                                <span className="hidden sm:inline">Dashboard</span>
-                            </Link>
-                        </Button>
-                        <div className="h-4 w-[1px] bg-border hidden sm:block"></div>
-                        <h1 className="text-lg font-bold truncate max-w-[200px] md:max-w-md">
-                            {article.title}
-                        </h1>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant={article.published ? "secondary" : "default"}
-                            size="sm"
-                            onClick={handleTogglePublish}
-                        >
-                            {article.published ? 'Dépublier' : 'Publier'}
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={handleDelete}
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </div>
-                </div>
-            </header>
+            <ArticleDetailHeader
+                title={article.title}
+                published={article.published}
+                onTogglePublish={handleTogglePublish}
+                onDelete={handleDelete}
+            />
 
             <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
                 {/* Image Section */}
@@ -307,7 +284,7 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                                     disabled={generating}
                                                     className="h-8 text-[11px] px-3"
                                                 >
-                                                    <Wand2 className="w-3 h-3 mr-1" />
+                                                    <RefreshCw className="w-3 h-3 mr-1" />
                                                     {generating ? "Génération..." : "Générer"}
                                                 </Button>
                                             )}
@@ -350,7 +327,6 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                         onClick={handleSave}
                                         disabled={saving}
                                     >
-                                        <Save className="w-4 h-4 mr-2" />
                                         {saving ? "Sauvegarde en cours..." : "Enregistrer les modifications"}
                                     </Button>
                                 )}
@@ -359,51 +335,15 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                     </div>
 
                     <div className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Statut</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <Globe className="w-4 h-4 text-muted-foreground" />
-                                        <span>Publication</span>
-                                    </div>
-                                    <Badge variant={article.published ? "default" : "outline"}>
-                                        {article.published ? "Publié" : "Brouillon"}
-                                    </Badge>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <div className="flex items-center gap-2 text-sm">
-                                        <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
-                                        <span>IA</span>
-                                    </div>
-                                    <Badge variant={article.isGenerated ? "default" : "outline"}>
-                                        {article.isGenerated ? "Généré" : "En attente"}
-                                    </Badge>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <ArticleStatusCard
+                            published={article.published}
+                            isGenerated={article.isGenerated}
+                        />
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Source</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label className="text-xs">Description RSS</Label>
-                                    <div className="text-xs text-muted-foreground bg-muted p-3 rounded-md line-clamp-6">
-                                        {article.description || "Aucune description source."}
-                                    </div>
-                                </div>
-                                <Button variant="outline" size="sm" className="w-full" asChild>
-                                    <a href={article.link} target="_blank" rel="noopener noreferrer">
-                                        <ExternalLink className="w-3 h-3 mr-2" />
-                                        Lien d&apos;origine (Wowhead)
-                                    </a>
-                                </Button>
-                            </CardContent>
-                        </Card>
+                        <ArticleSourceCard
+                            description={article.description}
+                            link={article.link}
+                        />
                     </div>
                 </div>
             </main>

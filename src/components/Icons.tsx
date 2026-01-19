@@ -379,31 +379,6 @@ export const Save = ({ size = 20, ...props }: IconProps) => (
     </svg>
 );
 
-export const Wand = ({ size = 20, ...props }: IconProps) => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width={size}
-        height={size}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        {...props}
-    >
-        <path d="m2 22 1-1" />
-        <path d="m5 19 1-1" />
-        <path d="m8 16 1-1" />
-        <path d="m11 13 1-1" />
-        <path d="m14 10 1-1" />
-        <path d="M18 6l3-3" />
-        <path d="M18 3l3 3" />
-        <path d="M22 10.5l-3-3" />
-        <path d="M10.5 22l-3-3" />
-    </svg>
-);
-
 export const Undo = ({ size = 20, ...props }: IconProps) => (
     <svg
         xmlns="http://www.w3.org/2000/svg"

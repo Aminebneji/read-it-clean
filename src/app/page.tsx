@@ -8,7 +8,9 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { RefreshCcw } from "@/components/Icons";
+import Image from "next/image";
 import { formatErrorMessage } from "@/utils/error.utils";
+import PaginationControls from "@/components/ui/pagination-controls";
 
 export default function Home() {
   const [articles, setArticles] = useState<article[]>([]);
@@ -144,12 +146,14 @@ export default function Home() {
       >
         <div className="flex items-center relative gap-4">
           <div className="relative z-10 flex flex-col justify-center">
-            <h1 className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60 leading-tight drop-shadow-[0_2px_2px_rgba(255,255,255,0.8)] dark:drop-shadow-none">
-              Read It Clean
-            </h1>
-            <p className="text-muted-foreground text-xs font-bold hidden md:block">
-              Les dernières actualités de World of Warcraft
-            </p>
+            <Image
+              src="/RICLOGO.png"
+              alt="Read It Clean Logo"
+              width={180}
+              height={60}
+              className="h-12 w-auto object-contain"
+              priority
+            />
           </div>
         </div>
       </div>
@@ -197,30 +201,11 @@ export default function Home() {
 
         <ArticleGrid articles={articles} loading={loading} />
 
-        {/* Pagination */}
-        {!loading && totalPages > 1 && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-            <div className="flex justify-center items-center gap-4">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-6 py-2 bg-card border border-border rounded-lg font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                Précédent
-              </button>
-              <span className="text-muted-foreground font-medium">
-                Page {page} sur {totalPages}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-6 py-2 bg-card border border-border rounded-lg font-medium text-foreground hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                Suivant
-              </button>
-            </div>
-          </div>
-        )}
+        <PaginationControls
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </main>
 
       {/* Pinned */}
