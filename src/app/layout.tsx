@@ -41,6 +41,7 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
+        <script src="https://feebdack-phi.vercel.app/widget.js" async data-site-key="sk_8ee423bb47f181edaddbdca93e968661"></script>
       </body>
     </html>
   );
