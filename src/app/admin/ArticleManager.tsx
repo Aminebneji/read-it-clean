@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { article } from "@/types/article.types";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { RefreshCcw as RefreshCw, Trash2, Loader as Loader2 } from "@/components/Icons";
+import { Trash2, Loader as Loader2 } from "@/components/Icons";
 import WowheadGenerationModal from "@/components/admin/WowheadGenerationModal";
 import AdminArticleTable from "@/components/admin/AdminArticleTable";
 import PaginationControls from "@/components/ui/pagination-controls";
