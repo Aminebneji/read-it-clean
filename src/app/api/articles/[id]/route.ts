@@ -23,7 +23,8 @@ export async function GET(
 
         return createSuccessResponse(article, HTTP_STATUS.OK);
     } catch (error) {
-        return createErrorResponse(error, HTTP_STATUS.INTERNAL_SERVER_ERROR, `GET /api/articles/${params.id}`);
+        const statusCode = (error as any).code === 'ARTICLE_NOT_FOUND' ? HTTP_STATUS.NOT_FOUND : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+        return createErrorResponse(error, statusCode, `GET /api/articles/${params.id}`);
     }
 }
 
@@ -64,7 +65,8 @@ export async function PATCH(
 
         return createSuccessResponse(updatedArticle, HTTP_STATUS.OK);
     } catch (error) {
-        return createErrorResponse(error, HTTP_STATUS.INTERNAL_SERVER_ERROR, `PATCH /api/articles/${params.id}`);
+        const statusCode = (error as any).code === 'ARTICLE_NOT_FOUND' ? HTTP_STATUS.NOT_FOUND : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+        return createErrorResponse(error, statusCode, `PATCH /api/articles/${params.id}`);
     }
 }
 
@@ -82,6 +84,7 @@ export async function DELETE(
         await deleteArticle(params.id);
         return createSuccessResponse({ success: true }, HTTP_STATUS.OK);
     } catch (error) {
-        return createErrorResponse(error, HTTP_STATUS.INTERNAL_SERVER_ERROR, `DELETE /api/articles/${params.id}`);
+        const statusCode = (error as any).code === 'ARTICLE_NOT_FOUND' ? HTTP_STATUS.NOT_FOUND : HTTP_STATUS.INTERNAL_SERVER_ERROR;
+        return createErrorResponse(error, statusCode, `DELETE /api/articles/${params.id}`);
     }
 }

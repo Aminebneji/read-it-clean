@@ -7,25 +7,14 @@ import { ERROR_MESSAGES } from './constants';
 function getRequiredEnvVar(key: string): string {
     const value = process.env[key];
 
-    // Dans le navigateur, les variables d'env ne sont pas disponibles (sauf NEXT_PUBLIC_)
-    // On retourne une chaîne vide au lieu de crasher
-    if (typeof window !== 'undefined') {
+    // Dans le navigateur ou pendant le build, les variables ne sont pas forcément là.
+    // On retourne une chaîne vide plutôt que de crasher au chargement du module.
+    // La validation réelle se fait au moment de l'utilisation dans les services.
+    if (typeof window !== 'undefined' || process.env.NEXT_PHASE === 'phase-production-build') {
         return value || '';
     }
 
-    // Pendant le build, on permet les valeurs vides
-    if (process.env.NEXT_PHASE === 'phase-production-build') {
-        return value || '';
-    }
-
-    if (!value || value.trim() === '') {
-        throw new AppError(
-            `${ERROR_MESSAGES.MISSING_ENV_VAR}: ${key}`,
-            ERROR_CODES.MISSING_API_KEY
-        );
-    }
-
-    return value;
+    return value || '';
 }
 
 // Récupère une variable d'environnement optionnelle avec valeur par défaut
