@@ -1,4 +1,3 @@
-import DOMPurify from "isomorphic-dompurify";
 import sanitize from "sanitize-html";
 
 const ALLOWED_TAGS = [
@@ -14,29 +13,16 @@ const ALLOWED_ATTR = {
     '*': ['class', 'alt', 'title']
 };
 
-// HTML sanitization avec DOMPurify (client) ou sanitize-html (serveur)
+/**
+ * HTML sanitization using sanitize-html.
+ * Standardized across client and server for consistency.
+ */
 export function sanitizeHtml(html: string): string {
     if (!html) return html;
 
-    // Sur le serveur, on évite DOMPurify car il tire jsdom (trop lourd et buggé en Serverless)
-    if (typeof window === 'undefined') {
-        return sanitize(html, {
-            allowedTags: ALLOWED_TAGS,
-            allowedAttributes: ALLOWED_ATTR,
-            allowedIframeHostnames: ['www.youtube.com', 'player.vimeo.com']
-        });
-    }
-
-    // Dans le navigateur, DOMPurify est ultra-performant et léger
-    return DOMPurify.sanitize(html, {
-        ALLOWED_TAGS,
-        ALLOWED_ATTR: [
-            'href', 'src', 'alt', 'title', 'target', 'rel', 'class',
-            'width', 'height', 'frameborder', 'allow', 'allowfullscreen'
-        ],
-        ADD_TAGS: ['iframe'],
-        ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'],
-        FORBID_TAGS: ['script', 'style', 'form', 'input', 'button', 'textarea', 'select'],
-        FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onmouseover'],
+    return sanitize(html, {
+        allowedTags: ALLOWED_TAGS,
+        allowedAttributes: ALLOWED_ATTR,
+        allowedIframeHostnames: ['www.youtube.com', 'player.vimeo.com', 'www.dailymotion.com']
     });
 }
