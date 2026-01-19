@@ -1,47 +1,26 @@
+import DOMPurify from "isomorphic-dompurify";
 import { CLAUDE_CONFIG } from "@/config/app.config";
 import { logger } from "./logger.utils";
 
-
-// HTML sanitization to strip script tags and other dangerous elements. 
+// HTML sanitization using DOMPurify for robust XSS protection
 export function sanitizeHtml(html: string): string {
     if (!html) return html;
 
-    let sanitized = html;
-
-    // 1. Remove script tags and their content
-    sanitized = sanitized.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
-
-    // 2. Remove "on" event handlers and other dangerous attributes
-    const dangerousAttributes = ['onclick', 'onerror', 'ononload', 'onmouseover', 'onfocus', 'onblur', 'style', 'formaction'];
-    const attrRegex = new RegExp(`\\s(${dangerousAttributes.join('|')})\\s*=\\s*["'][^"']*["']`, 'gim');
-    sanitized = sanitized.replace(attrRegex, "");
-
-    // 3. Prevent javascript: protocol in href/src
-    sanitized = sanitized.replace(/(href|src|action|data)\s*=\s*["']\s*javascript:[^"']*["']/gim, '$1="#"');
-
-    // 4. Handle iframes/objects/embeds (only allow specific YouTube embeds)
-    sanitized = sanitized.replace(/<(iframe|object|embed|base)\b[^>]*>([\s\S]*?)<\/\1>/gim, (match, tag) => {
-        if (tag.toLowerCase() === 'iframe' && isSafeYoutubeUrl(match)) {
-            return match;
-        }
-        return "";
+    return DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: [
+            'p', 'b', 'i', 'em', 'strong', 'a', 'ul', 'ol', 'li', 'br', 'hr',
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'img', 'iframe',
+            'span', 'div', 'code', 'pre'
+        ],
+        ALLOWED_ATTR: [
+            'href', 'src', 'alt', 'title', 'target', 'rel', 'class',
+            'width', 'height', 'frameborder', 'allow', 'allowfullscreen'
+        ],
+        ADD_TAGS: ['iframe'],
+        ADD_ATTR: ['allow', 'allowfullscreen', 'frameborder', 'scrolling'],
+        FORBID_TAGS: ['script', 'style', 'form', 'input', 'button', 'textarea', 'select'],
+        FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onmouseover'],
     });
-
-    sanitized = sanitized.replace(/<(iframe|object|embed|base)\b[^>]*\/?>/gim, (match) => {
-        if (match.toLowerCase().startsWith('<iframe') && isSafeYoutubeUrl(match)) {
-            return match;
-        }
-        return "";
-    });
-
-    return sanitized;
-}
-
-function isSafeYoutubeUrl(html: string): boolean {
-    const srcMatch = html.match(/src=["']([^"']+)["']/i);
-    if (!srcMatch) return false;
-    const url = srcMatch[1];
-    return url.startsWith('https://www.youtube.com/embed/') || url.startsWith('https://youtube.com/embed/');
 }
 
 export function isValidUrl(url: string): boolean {

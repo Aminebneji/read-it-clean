@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "@/components/Icons";
 import { Badge } from "@/components/ui/badge";
 import { ModeToggle } from "@/components/mode-toggle";
+import { sanitizeHtml } from "@/utils/security.utils";
 
 interface ArticlePageProps {
     params: Promise<{ id: string }>;
@@ -95,12 +96,12 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                         {article.generatedText ? (
                             <div
                                 className="prose prose-xl md:prose-2xl dark:prose-invert max-w-none antialiased text-foreground/90 leading-relaxed font-serif prose-headings:font-sans prose-headings:font-black prose-img:rounded-2xl prose-img:shadow-xl prose-a:text-primary"
-                                dangerouslySetInnerHTML={{ __html: article.generatedText }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.generatedText) }}
                             />
                         ) : article.description ? (
                             <div
                                 className="prose prose-lg dark:prose-invert max-w-none text-muted-foreground"
-                                dangerouslySetInnerHTML={{ __html: article.description }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.description) }}
                             />
                         ) : (
                             <p className="italic text-muted-foreground text-center py-20 grayscale opacity-50">Aucun contenu disponible pour cet article.</p>

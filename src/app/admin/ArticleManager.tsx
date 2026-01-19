@@ -4,9 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { article } from "@/types/article.types";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import { RefreshCcw as RefreshCw, ExternalLink, Cog as Settings, Star, Trash2, Loader as Loader2 } from "@/components/Icons";
-import Link from "next/link";
+import { RefreshCcw as RefreshCw, Trash2, Loader as Loader2 } from "@/components/Icons";
 import WowheadGenerationModal from "@/components/admin/WowheadGenerationModal";
 import AdminArticleTable from "@/components/admin/AdminArticleTable";
 import PaginationControls from "@/components/ui/pagination-controls";
@@ -236,7 +234,7 @@ export default function ArticleManager() {
                             }}
                         />
                         <label htmlFor="pinned-first" className="text-sm font-medium leading-none cursor-pointer">
-                            Épinglés d'abord
+                            Épinglés d&apos;abord
                         </label>
                     </div>
                     <Button
@@ -245,7 +243,6 @@ export default function ArticleManager() {
                         className="gap-2"
                         variant="outline"
                     >
-                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         Sync RSS
                     </Button>
 

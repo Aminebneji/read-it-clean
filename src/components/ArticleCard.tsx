@@ -3,13 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { sanitizeHtml } from "@/utils/security.utils";
 
 interface ArticleCardProps {
     article: article;
     index?: number;
 }
-
-import { cn } from "@/lib/utils";
 
 export default function ArticleCard({ article, index = 0 }: ArticleCardProps) {
     const formattedDate = new Date(article.pubDate || article.createdAt).toLocaleDateString('fr-FR', {
@@ -73,7 +73,7 @@ export default function ArticleCard({ article, index = 0 }: ArticleCardProps) {
                         {article.description && (
                             <div
                                 className="text-muted-foreground/70 text-sm md:text-base line-clamp-3 font-medium leading-relaxed mb-6 prose dark:prose-invert prose-sm max-w-none"
-                                dangerouslySetInnerHTML={{ __html: article.description }}
+                                dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.description) }}
                             />
                         )}
 

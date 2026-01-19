@@ -14,7 +14,7 @@ export default withAuth(
             );
         }
 
-        // Add security headers
+        // ajout de headers de sécurité
         response.headers.set("X-Frame-Options", "DENY");
         response.headers.set("X-Content-Type-Options", "nosniff");
         response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -31,7 +31,18 @@ export default withAuth(
     },
     {
         callbacks: {
-            authorized: ({ token }) => {
+            authorized: ({ token, req }) => {
+                const { nextUrl } = req;
+
+                // Routes publiques (lecture seule)
+                if (req.method === "GET" && (
+                    nextUrl.pathname.startsWith("/api/articles") &&
+                    !nextUrl.pathname.startsWith("/api/admin")
+                )) {
+                    return true;
+                }
+
+                // Routes Admin (requièrent le rôle ADMIN)
                 return token?.role === "ADMIN";
             },
         },
