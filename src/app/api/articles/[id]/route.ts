@@ -12,8 +12,10 @@ export async function GET(
     props: { params: Promise<{ id: string }> }
 ) {
     const params = await props.params;
+    console.log(`[API GET] Fetching article ${params.id}`);
     try {
         const article = await getArticleById(params.id);
+        console.log(`[API GET] Article found: ${article.title}`);
         if (!article.published) {
             const session = await getServerSession(authOptions);
             if (!session || session.user.role !== 'ADMIN') {

@@ -23,6 +23,9 @@ export function createErrorResponse(
 ): NextResponse<ApiErrorResponse> {
     const errorMessage = formatErrorMessage(error, context);
 
+    // Log the error on the server for debugging
+    console.error(`[API Error] ${errorMessage}`, error);
+
     return NextResponse.json(
         {
             success: false,
