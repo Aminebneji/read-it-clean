@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { sanitizeHtml } from "@/utils/security.utils";
+import { sanitizeHtml } from "@/utils/sanitize.utils";
 
 interface ArticleCardProps {
     article: article;

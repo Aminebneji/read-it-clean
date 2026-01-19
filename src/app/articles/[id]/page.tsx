@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { ExternalLink } from "@/components/Icons";
 import { Badge } from "@/components/ui/badge";
 import { ModeToggle } from "@/components/mode-toggle";
-import { sanitizeHtml } from "@/utils/security.utils";
+import { sanitizeHtml } from "@/utils/sanitize.utils";
 
 interface ArticlePageProps {
     params: Promise<{ id: string }>;

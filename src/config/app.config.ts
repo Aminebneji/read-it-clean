@@ -7,6 +7,12 @@ import { ERROR_MESSAGES } from './constants';
 function getRequiredEnvVar(key: string): string {
     const value = process.env[key];
 
+    // Dans le navigateur, les variables d'env ne sont pas disponibles (sauf NEXT_PUBLIC_)
+    // On retourne une chaîne vide au lieu de crasher
+    if (typeof window !== 'undefined') {
+        return value || '';
+    }
+
     // Pendant le build, on permet les valeurs vides
     if (process.env.NEXT_PHASE === 'phase-production-build') {
         return value || '';

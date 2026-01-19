@@ -5,7 +5,7 @@ import { getArticleById, deleteArticle, updateArticle, getArticles } from "@/ser
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/config/auth.config";
 import { NextRequest } from "next/server";
-import { sanitizeHtml } from "@/utils/security.utils";
+import { sanitizeHtml } from "@/utils/sanitize.utils";
 
 export async function GET(
     request: NextRequest,

@@ -11,7 +11,7 @@ import { Undo as Undo2, Pen as Edit3, Calendar, Clock, RefreshCcw as RefreshCw }
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { sanitizeHtml } from "@/utils/security.utils";
+import { sanitizeHtml } from "@/utils/sanitize.utils";
 import RichTextEditor from "@/components/RichTextEditor";
 import ArticleDetailHeader from "@/components/admin/article-detail/ArticleDetailHeader";
 import ArticleStatusCard from "@/components/admin/article-detail/ArticleStatusCard";
