@@ -74,6 +74,7 @@ export default function ArticleCard({ article, index = 0 }: ArticleCardProps) {
                             <div
                                 className="text-muted-foreground/70 text-sm md:text-base line-clamp-3 font-medium leading-relaxed mb-6 prose dark:prose-invert prose-sm max-w-none"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.description) }}
+                                suppressHydrationWarning
                             />
                         )}
 

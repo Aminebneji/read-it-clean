@@ -265,7 +265,11 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                     ) : (
                                         <div className="p-3 bg-muted/50 rounded-lg text-sm text-muted-foreground border border-border">
                                             {article.description ? (
-                                                <div className="prose dark:prose-invert prose-sm" dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.description) }} />
+                                                <div
+                                                    className="prose dark:prose-invert prose-sm"
+                                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.description) }}
+                                                    suppressHydrationWarning
+                                                />
                                             ) : (
                                                 "Aucune description."
                                             )}
@@ -313,7 +317,8 @@ export default function ArticleDetailPage(props: { params: Promise<{ id: string 
                                             {article.generatedText ? (
                                                 <div
                                                     className="prose dark:prose-invert max-w-none"
-                                                    dangerouslySetInnerHTML={{ __html: article.generatedText }}
+                                                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.generatedText) }}
+                                                    suppressHydrationWarning
                                                 />
                                             ) : (
                                                 <p className="italic">Le contenu n&apos;a pas encore été généré.</p>

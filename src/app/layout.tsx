@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +42,11 @@ export default function RootLayout({
         >
           {children}
         </ThemeProvider>
-        <script src="https://feebdack-phi.vercel.app/widget.js" async data-site-key="sk_8ee423bb47f181edaddbdca93e968661"></script>
+        <Script
+          src="https://feebdack-phi.vercel.app/widget.js"
+          strategy="afterInteractive"
+          data-site-key="sk_8ee423bb47f181edaddbdca93e968661"
+        />
       </body>
     </html>
   );
