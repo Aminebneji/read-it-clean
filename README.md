@@ -9,7 +9,6 @@ Un lecteur de news simplifié et élégant pour la communauté World of Warcraft
 
 🎯 
 ReadItClean transforme l'expérience de lecture des actualités Wowhead en offrant une interface épurée et moderne.
-À terme, l'application s'étendra à d'autres sources via flux RSS avec un design unifié et des articles enrichis par IA via une data récupéré au préalable.
 
 # Installer les dépendances
 npm install
@@ -31,5 +30,3 @@ RSS_REFRESH_INTERVAL=300000
 DATABASE_URL=""
 
 ```
-
-MADE TO GET SOME FUN /W FRONTEND DEVELOPMENT 🎉

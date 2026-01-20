@@ -1,13 +1,10 @@
-import { AppError, ERROR_CODES } from '@/utils/error.utils';
-import { ERROR_MESSAGES } from './constants';
-
 
 // Récupère une variable d'environnement requise (lance une erreur si absente)
 // En mode build, retourne une chaîne vide pour permettre la compilation
 function getRequiredEnvVar(key: string): string {
     const value = process.env[key];
 
-    // Dans le navigateur ou pendant le build, les variables ne sont pas forcément là.
+    // Dans le navigateur ou pendant le build, les variables sont pas forcément là.
     // On retourne une chaîne vide plutôt que de crasher au chargement du module.
     // La validation réelle se fait au moment de l'utilisation dans les services.
     if (typeof window !== 'undefined' || process.env.NEXT_PHASE === 'phase-production-build') {
