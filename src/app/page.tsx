@@ -56,7 +56,9 @@ export default function Home() {
       const data = await res.json();
 
       if (data.success) {
-        setPinnedArticles(data.data);
+        // Sort from oldest to newest (reverse chronological)
+        const sortedArticles = [...data.data].reverse();
+        setPinnedArticles(sortedArticles);
       }
     } catch (err) {
       console.error(formatErrorMessage(err, "PinnedArticles"));

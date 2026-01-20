@@ -95,13 +95,13 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
                     <div className="prose prose-lg dark:prose-invert max-w-none">
                         {article.generatedText ? (
                             <div
-                                className="prose prose-xl md:prose-2xl dark:prose-invert max-w-none antialiased text-foreground/90 leading-relaxed font-serif prose-headings:font-sans prose-headings:font-black prose-img:rounded-2xl prose-img:shadow-xl prose-a:text-primary"
+                                className="prose prose-xl md:prose-2xl dark:prose-invert max-w-none antialiased text-foreground/90 leading-relaxed font-sans prose-headings:font-sans prose-headings:font-black prose-img:rounded-2xl prose-img:shadow-xl prose-a:text-primary"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.generatedText) }}
                                 suppressHydrationWarning
                             />
                         ) : article.description ? (
                             <div
-                                className="prose prose-lg dark:prose-invert max-w-none text-muted-foreground"
+                                className="prose prose-lg dark:prose-invert max-w-none text-muted-foreground font-sans"
                                 dangerouslySetInnerHTML={{ __html: sanitizeHtml(article.description) }}
                                 suppressHydrationWarning
                             />
